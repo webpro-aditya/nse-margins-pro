@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NSE Clearing - Risk Management CM</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Shared Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg-[#ededed] text-[#333333] select-text antialiased min-w-[1280px]">
+
+  <!-- Top App Bar -->
+  <header class="bg-white border-b border-gray-300 px-3 py-1 flex items-center justify-between shadow-xs">
+    <div class="flex items-center gap-2">
+      <a href="dashboard.html" class="flex items-center gap-1.5">
+        <svg class="w-7 h-7" viewBox="0 0 100 100" fill="none">
+          <circle cx="50" cy="50" r="42" stroke="#f26522" stroke-width="12" stroke-dasharray="190 70" stroke-linecap="round" />
+          <circle cx="50" cy="50" r="26" fill="#1e3a8a" />
+        </svg>
+        <div class="flex flex-col leading-none">
+          <span class="text-xl font-black tracking-tight text-[#1b365d]">NSE</span>
+          <span class="text-[9px] font-semibold text-gray-500 tracking-wider">Clearing</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="flex items-center gap-4 text-gray-600">
+      <button title="Announcements" class="hover:text-black">
+        <i data-lucide="megaphone" class="w-4 h-4 text-gray-600"></i>
+      </button>
+      <button title="Menu" class="hover:text-black">
+        <i data-lucide="grid" class="w-4 h-4 text-gray-600"></i>
+      </button>
+      <div class="flex items-center gap-1.5 cursor-pointer border-l pl-3 border-gray-300">
+        <div class="flex flex-col text-right leading-tight">
+          <span class="text-[11px] font-bold text-gray-700">ACME CAPITAL...</span>
+          <span class="text-[9px] text-gray-400 font-medium lowercase">rms</span>
+        </div>
+        <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-gray-500"></i>
+      </div>
+    </div>
+  </header>
+
+  <!-- Title Bar -->
+  <div class="bg-[#ededed] border-b border-gray-300 px-3 py-1 flex items-center justify-between">
+    <span class="text-[#800000] font-bold text-[11px] tracking-wide uppercase">RISK MANAGEMENT - CM</span>
+    <button title="Mail" class="text-[#800000] hover:text-red-900">
+      <i data-lucide="mail" class="w-4 h-4"></i>
+    </button>
+  </div>
+
+  <!-- Primary Sub-navigation Bar -->
+  <nav class="bg-[#ededed] border-b border-gray-300 px-3 py-1 flex gap-5 text-[11px]">
+    <div class="flex items-center gap-1 font-bold text-[#800000] cursor-pointer hover:underline">
+      <span>MARGINS</span>
+      <span class="text-[8px]">▼</span>
+    </div>
+    <div class="flex items-center gap-1 font-bold text-[#800000] cursor-pointer hover:underline">
+      <span>COLLATERALS</span>
+      <span class="text-[8px]">▼</span>
+    </div>
+  </nav>
+
+  <!-- Main View Container -->
+  <main class="p-3 space-y-4">
+
+    <!-- Filter Control Box -->
+    <div class="space-y-1">
+      <div class="text-[11px] font-bold text-gray-700 uppercase">TM MARGIN</div>
+      <div class="flex items-center gap-6 text-[11px] text-gray-700">
+        <label class="flex items-center gap-1.5 cursor-pointer font-semibold text-black">
+          <input type="radio" name="tm_margin_filter" value="total" checked class="w-3.5 h-3.5 text-blue-600 border-gray-300">
+          <span>Total Margins</span>
+        </label>
+        <label class="flex items-center gap-1.5 cursor-pointer">
+          <input type="radio" name="tm_margin_filter" value="settlement" class="w-3.5 h-3.5 text-blue-600 border-gray-300">
+          <span>Settlement Level Margins</span>
+        </label>
+        <label class="flex items-center gap-1.5 cursor-pointer">
+          <input type="radio" name="tm_margin_filter" value="security" class="w-3.5 h-3.5 text-blue-600 border-gray-300">
+          <span>Security Margins</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Section 1: Margin Summary -->
+    <section class="space-y-0.5">
+      <h2 class="text-[11px] font-bold text-gray-700 uppercase tracking-wide">
+        MARGIN SUMMARY @ <span id="summary-timestamp">12 AUG 2026 13:47:15</span>
+      </h2>
+      <div class="text-[10px] text-gray-600 font-semibold uppercase">LEVEL 1</div>
+      
+      <div class="overflow-x-auto bg-white border border-gray-300 shadow-sm">
+        <table class="w-full text-[10px] border-collapse">
+          <thead>
+            <tr class="bg-[#800000] text-white font-bold leading-tight">
+              <th class="border-r border-[#991b1b] px-2 py-1.5 text-center whitespace-nowrap">TM/CP CODE <span class="font-normal">=</span></th>
+              <th class="border-r border-[#991b1b] px-2 py-1.5 text-center whitespace-nowrap">TM/CP NAME <span class="font-normal">=</span></th>
+              <th class="border-r border-[#991b1b] px-2 py-1.5 text-center whitespace-nowrap">TM CASH (A) <span class="font-normal">=</span></th>
+              <th class="border-r border-[#991b1b] px-2 py-1.5 text-center whitespace-nowrap">TM NON-CASH (B) <span class="font-normal">=</span></th>
+              <th class="border-r border-[#991b1b] px-2 py-1.5 text-center whitespace-nowrap leading-tight">TM/CP EFFECTIVE<br>DEPOSIT(C =<br>A+MIN(A,B)) <span class="font-normal">=</span></th>
+              <th class="border-r border-[#991b1b] px-2 py-1.5 text-center whitespace-nowrap leading-tight">TM PROP/CP<br>MARGINS (D) <span class="font-normal">=</span></th>
+              <th class="border-r border-[#991b1b] px-2 py-1.5 text-center whitespace-nowrap leading-tight">CLI MARGIN &gt; 90%<br>(E) <span class="font-normal">=</span></th>
+              <th class="border-r border-[#991b1b] px-2 py-1.5 text-center whitespace-nowrap leading-tight">NON-CASH<br>BENEFIT FROM TM =<br>EXCESS CASH(F)</th>
+              <th class="border-r border-[#991b1b] px-2 py-1.5 text-center whitespace-nowrap leading-tight">NON-CASH<br>BENEFIT FROM<br>CM EXCESS<br>CASH(G) <span class="font-normal">=</span></th>
+              <th class="border-r border-[#991b1b] px-2 py-1.5 text-center whitespace-nowrap leading-tight">TOTAL MARGINS<br>(H=D+E-F-G) <span class="font-normal">=</span></th>
+              <th class="px-2 py-1.5 text-center whitespace-nowrap leading-tight">TM MARGIN<br>UTILISATION (H/C) <span class="font-normal">=</span></th>
+            </tr>
+          </thead>
+          <tbody class="bg-white">
+            <tr class="hover:bg-amber-50/50">
+              <td class="px-2 py-1 text-left border-r border-gray-200">90377</td>
+              <td class="px-2 py-1 text-left border-r border-gray-200 truncate max-w-[130px]" title="ACME CAPITAL MARKET SERVICES LTD">ACME CAPITAL M...</td>
+              <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">10,85,00,000.00</td>
+              <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">0.00</td>
+              <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">10,85,00,000.00</td>
+              <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">7,87,43,152.92</td>
+              <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">72,380.00</td>
+              <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">0.00</td>
+              <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">0.00</td>
+              <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums font-semibold">7,88,15,532.92</td>
+              <td class="px-2 py-1 text-right tabular-nums font-semibold">72.64</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Section 2: TM Detailed Margins -->
+    <section class="space-y-0.5">
+      <div class="flex items-center justify-between">
+        <h2 class="text-[11px] font-bold text-gray-700 uppercase tracking-wide">
+          TM DETAILED MARGINS @ <span id="detailed-timestamp">12 AUG 2026 13:47:15</span>
+        </h2>
+        <div class="flex items-center gap-2 text-gray-600">
+          <button class="hover:text-black" title="Download"><i data-lucide="download" class="w-3.5 h-3.5"></i></button>
+          <button class="hover:text-black" title="Column Setting"><i data-lucide="columns" class="w-3.5 h-3.5"></i></button>
+        </div>
+      </div>
+      <div class="text-[10px] text-gray-600 font-semibold uppercase">LEVEL 1</div>
+
+      <div class="overflow-x-auto bg-white border border-gray-300 shadow-sm">
+        <table class="w-full text-[10px] border-collapse">
+          <thead>
+            <tr class="bg-[#800000] text-white font-bold">
+              <th class="border-r border-[#991b1b] px-3 py-1.5 text-center whitespace-nowrap">TM CODE <span class="font-normal">=</span></th>
+              <th class="border-r border-[#991b1b] px-3 py-1.5 text-center whitespace-nowrap">TM NAME <span class="font-normal">=</span></th>
+              <th class="border-r border-[#991b1b] px-3 py-1.5 text-center whitespace-nowrap">MTM LOSS (A) <span class="font-normal">=</span></th>
+              <th class="border-r border-[#991b1b] px-3 py-1.5 text-center whitespace-nowrap">TRADE MARGINS (B) <span class="font-normal">=</span></th>
+              <th class="border-r border-[#991b1b] px-3 py-1.5 text-center whitespace-nowrap">ICMTM (C) <span class="font-normal">=</span></th>
+              <th class="px-3 py-1.5 text-center whitespace-nowrap">TOTAL MARGINS (D = A+B+C) <span class="font-normal">=</span></th>
+            </tr>
+          </thead>
+          <tbody class="bg-white">
+            <tr class="hover:bg-amber-50/50">
+              <td class="px-3 py-1.5 text-left border-r border-gray-200">90377</td>
+              <td class="px-3 py-1.5 text-left border-r border-gray-200 font-semibold">ACME CAPITAL MARKET LTD</td>
+              <td class="px-3 py-1.5 text-right border-r border-gray-200 tabular-nums">0.00</td>
+              <td class="px-3 py-1.5 text-right border-r border-gray-200 tabular-nums">7,87,43,152.92</td>
+              <td class="px-3 py-1.5 text-right border-r border-gray-200 tabular-nums">0.00</td>
+              <td class="px-3 py-1.5 text-right tabular-nums font-semibold">7,87,43,152.92</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Section 3: Level 2 Client Code Selection Box -->
+    <section class="space-y-1.5 pt-1">
+      <div class="text-[10px] text-gray-600 font-semibold uppercase">LEVEL 2</div>
+      <div class="flex items-end gap-3">
+        
+        <div class="flex flex-col gap-1 w-44">
+          <label for="client-code-select" class="text-[10.5px] text-gray-600 font-medium">Client Code</label>
+          <div class="relative">
+            <select id="client-code-select" class="w-full bg-white border border-gray-400 text-gray-800 text-[11px] px-2 py-1 pr-6 rounded-none outline-none focus:border-blue-600 appearance-none">
+              <option value="" disabled selected hidden>Select Client Code</option>
+              <option value="ALL">All</option>
+              <option value="ACML1515">ACML1515</option>
+              <option value="ACML1406">ACML1406</option>
+              <option value="ACML1652">ACML1652</option>
+              <option value="ACML1740">ACML1740</option>
+              <option value="ACML1343">ACML1343</option>
+              <option value="ACML1733">ACML1733</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1.5 text-gray-600">
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button id="btn-clear-all" class="bg-[#4a4a4a] hover:bg-[#333333] text-white text-[11px] font-semibold px-6 py-1 border border-black shadow-xs">
+            Clear All
+          </button>
+          <button id="btn-show" class="bg-[#800000] hover:bg-[#600000] text-white text-[11px] font-semibold px-6 py-1 border border-[#4a0000] shadow-xs">
+            Show
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Shared App JS -->
+  <script src="app.js"></script>
+</body>
+</html>

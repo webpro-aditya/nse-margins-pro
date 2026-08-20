@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NSE Clearing - Member Settlement Security Margins</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Shared Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg-[#ededed] text-[#333333] select-text antialiased min-w-[1280px]">
+
+  <!-- Top App Bar -->
+  <header class="bg-white border-b border-gray-300 px-3 py-1 flex items-center justify-between shadow-xs">
+    <div class="flex items-center gap-2">
+      <a href="dashboard.html" class="flex items-center gap-1.5">
+        <svg class="w-7 h-7" viewBox="0 0 100 100" fill="none">
+          <circle cx="50" cy="50" r="42" stroke="#f26522" stroke-width="12" stroke-dasharray="190 70" stroke-linecap="round" />
+          <circle cx="50" cy="26" r="26" fill="#1e3a8a" />
+        </svg>
+        <div class="flex flex-col leading-none">
+          <span class="text-xl font-black tracking-tight text-[#1b365d]">NSE</span>
+          <span class="text-[9px] font-semibold text-gray-500 tracking-wider">Clearing</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="flex items-center gap-4 text-gray-600">
+      <button title="Announcements" class="hover:text-black">
+        <i data-lucide="megaphone" class="w-4 h-4 text-gray-600"></i>
+      </button>
+      <button title="Menu" class="hover:text-black">
+        <i data-lucide="grid" class="w-4 h-4 text-gray-600"></i>
+      </button>
+      <div class="flex items-center gap-1.5 cursor-pointer border-l pl-3 border-gray-300">
+        <div class="flex flex-col text-right leading-tight">
+          <span class="text-[11px] font-bold text-gray-700">ACME CAPITAL...</span>
+          <span class="text-[9px] text-gray-400 font-medium lowercase">rms</span>
+        </div>
+        <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-gray-500"></i>
+      </div>
+    </div>
+  </header>
+
+  <!-- Title Sub-Header -->
+  <div class="bg-[#ededed] border-b border-gray-300 px-3 py-1 flex items-center justify-between">
+    <span class="text-[#800000] font-bold text-[11px] tracking-wide uppercase">RISK MANAGEMENT - CM</span>
+    <button title="Mail" class="text-[#800000] hover:text-red-900">
+      <i data-lucide="mail" class="w-4 h-4"></i>
+    </button>
+  </div>
+
+  <!-- Primary Sub-navigation Bar -->
+  <nav class="bg-[#ededed] border-b border-gray-300 px-3 py-1 flex gap-5 text-[11px]">
+    <div class="flex items-center gap-1 font-bold text-[#800000] cursor-pointer hover:underline">
+      <span>MARGINS</span>
+      <span class="text-[8px]">▼</span>
+    </div>
+    <div class="flex items-center gap-1 font-bold text-[#800000] cursor-pointer hover:underline">
+      <span>COLLATERALS</span>
+      <span class="text-[8px]">▼</span>
+    </div>
+  </nav>
+
+  <!-- Main View Container -->
+  <main class="p-3 space-y-3">
+    <!-- TM Margin Radio Options -->
+    <div class="space-y-1">
+      <div class="text-[11px] font-bold text-gray-700 uppercase">TM MARGIN</div>
+      <div class="flex items-center gap-6 text-[11px] text-gray-700">
+        <label class="flex items-center gap-1.5 cursor-pointer">
+          <input type="radio" name="tm_margin_filter" value="total" class="w-3.5 h-3.5 text-blue-600 border-gray-300">
+          <span>Total Margins</span>
+        </label>
+        <label class="flex items-center gap-1.5 cursor-pointer">
+          <input type="radio" name="tm_margin_filter" value="settlement" class="w-3.5 h-3.5 text-blue-600 border-gray-300">
+          <span>Settlement Level Margins</span>
+        </label>
+        <label class="flex items-center gap-1.5 cursor-pointer font-semibold text-black">
+          <input type="radio" name="tm_margin_filter" value="security" checked class="w-3.5 h-3.5 text-blue-600 border-gray-300">
+          <span>Security Margins</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Section 1: Margin Summary -->
+    <section class="space-y-1">
+      <h2 class="text-[11px] font-bold text-gray-700 uppercase tracking-wide">MARGIN SUMMARY @</h2>
+      <div class="overflow-x-auto bg-white border border-gray-300 shadow-sm">
+        <table class="w-full text-[10px] border-collapse">
+          <thead>
+            <tr class="bg-[#800000] text-white font-bold leading-tight select-none">
+              <th class="border-r border-[#991b1b] px-2 py-1.5 text-center whitespace-nowrap">TM CODE <span class="font-normal">=</span></th>
+              <th class="border-r border-[#991b1b] px-2 py-1.5 text-center whitespace-nowrap">TM NAME <span class="font-normal">=</span></th>
+              <th class="border-r border-[#991b1b] px-2 py-1.5 text-center whitespace-nowrap">TM CASH (A) <span class="font-normal">=</span></th>
+              <th class="border-r border-[#991b1b] px-2 py-1.5 text-center whitespace-nowrap">TM NON-CASH (B) <span class="font-normal">=</span></th>
+              <th class="border-r border-[#991b1b] px-2 py-1.5 text-center whitespace-nowrap leading-tight">TM/CP EFFECTIVE<br>DEPOSIT<br><span class="font-normal">(C=A+MIN(A,B)) =</span></th>
+              <th class="border-r border-[#991b1b] px-2 py-1.5 text-center whitespace-nowrap leading-tight">TM PROP/CP<br>MARGINS (D) <span class="font-normal">=</span></th>
+              <th class="border-r border-[#991b1b] px-2 py-1.5 text-center whitespace-nowrap leading-tight">CLI MARGINS &gt;<br>90% (E) <span class="font-normal">=</span></th>
+              <th class="border-r border-[#991b1b] px-2 py-1.5 text-center whitespace-nowrap leading-tight">NON-CASH<br>BENEFIT FROM<br>TM EXCESS CASH(F) <span class="font-normal">=</span></th>
+              <th class="border-r border-[#991b1b] px-2 py-1.5 text-center whitespace-nowrap leading-tight">NON-CASH<br>BENEFIT FROM<br>CM EXCESS<br>CASH(G) <span class="font-normal">=</span></th>
+              <th class="border-r border-[#991b1b] px-2 py-1.5 text-center whitespace-nowrap leading-tight">TOTAL MARGINS<br>(H=D+E-F-G) <span class="font-normal">=</span></th>
+              <th class="px-2 py-1.5 text-center whitespace-nowrap leading-tight">TM MARGIN<br>UTILISATION [H/C] <span class="font-normal">=</span></th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr class="hover:bg-amber-50/50">
+              <td class="px-2 py-1 text-left border-r border-gray-200 text-gray-700">90377</td>
+              <td class="px-2 py-1 text-left border-r border-gray-200 truncate max-w-[130px]" title="ACME CAPITAL MARKET SERVICES LTD">ACME CAPITAL M...</td>
+              <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">11,14,00,000.00</td>
+              <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">0.00</td>
+              <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">11,14,00,000.00</td>
+              <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">3,64,87,435.58</td>
+              <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">1,01,206.89</td>
+              <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">0.00</td>
+              <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">0.00</td>
+              <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums font-semibold">3,65,88,642.47</td>
+              <td class="px-2 py-1 text-right tabular-nums font-semibold">32.84</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Section 2: Member Settlement Security Margins (Pure Static Grid) -->
+    <section class="space-y-1">
+      <div class="flex items-end justify-between">
+        <div>
+          <h2 class="text-[11px] font-bold text-gray-700 uppercase leading-none">MEMBER SETTLEMENT SECURITY MARGINS</h2>
+          <h3 class="text-[11px] font-bold text-gray-700 uppercase tracking-wide mt-1">MEMBER SETTLEMENT MARGINS @</h3>
+        </div>
+
+        <!-- Table Toolbar -->
+        <div class="flex items-center gap-3 text-gray-700 text-[10.5px]">
+          <span class="font-bold tracking-tight">ALL AMOUNTS IN RS.</span>
+          <div class="flex items-center gap-2 border-l pl-2 border-gray-300 text-gray-600">
+            <button class="hover:text-black font-bold text-xs" title="Export to Text">TXT</button>
+            <button class="hover:text-black" title="Refresh Table">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            </button>
+            <button class="hover:text-black" title="Print"><i data-lucide="printer" class="w-3.5 h-3.5"></i></button>
+            <button class="hover:text-black" title="Download"><i data-lucide="download" class="w-3.5 h-3.5"></i></button>
+            <button class="hover:text-black" title="Column Settings"><i data-lucide="columns" class="w-3.5 h-3.5"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scrollable Data Grid -->
+      <div class="max-h-[380px] overflow-y-scroll overflow-x-auto bg-white border border-gray-300 shadow-sm">
+        <table class="w-full text-[10.5px] border-collapse">
+          <thead class="sticky top-0 z-10">
+            <tr class="bg-[#800000] text-white font-bold tracking-tight">
+              <th class="border-r border-[#991b1b] px-3 py-1.5 text-center whitespace-nowrap">TM CODE <span class="font-normal">=</span></th>
+              <th class="border-r border-[#991b1b] px-3 py-1.5 text-center whitespace-nowrap">SETTLEMENT TYPE &amp; NO. <span class="font-normal">=</span></th>
+              <th class="border-r border-[#991b1b] px-3 py-1.5 text-center whitespace-nowrap">SYMBOL &amp; SERIES <span class="font-normal">=</span></th>
+              <th class="border-r border-[#991b1b] px-3 py-1.5 text-center whitespace-nowrap">UPFRONT MARGINS <span class="font-normal">=</span></th>
+              <th class="border-r border-[#991b1b] px-3 py-1.5 text-center whitespace-nowrap">EPI QUANTITY</th>
+              <th class="px-3 py-1.5 text-center whitespace-nowrap">EPI FUNDS</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 bg-white">
+            <tr class="hover:bg-amber-50/50">
+              <td class="px-3 py-1 border-r border-gray-200 text-gray-800 font-medium">90377</td>
+              <td class="px-3 py-1 border-r border-gray-200 text-gray-800">M2026142</td>
+              <td class="px-3 py-1 border-r border-gray-200 font-semibold text-gray-900">SBCEQ</td>
+              <td class="px-3 py-1 border-r border-gray-200 text-right tabular-nums font-medium">1,12,60,277.12</td>
+              <td class="px-3 py-1 border-r border-gray-200 text-right tabular-nums">0.00</td>
+              <td class="px-3 py-1 text-right tabular-nums">0.00</td>
+            </tr>
+            <tr class="hover:bg-amber-50/50">
+              <td class="px-3 py-1 border-r border-gray-200 text-gray-800 font-medium">90377</td>
+              <td class="px-3 py-1 border-r border-gray-200 text-gray-800">M2026142</td>
+              <td class="px-3 py-1 border-r border-gray-200 font-semibold text-gray-900">ATALREALEQ</td>
+              <td class="px-3 py-1 border-r border-gray-200 text-right tabular-nums font-medium">1,08,22,688.00</td>
+              <td class="px-3 py-1 border-r border-gray-200 text-right tabular-nums">0.00</td>
+              <td class="px-3 py-1 text-right tabular-nums">0.00</td>
+            </tr>
+            <tr class="hover:bg-amber-50/50">
+              <td class="px-3 py-1 border-r border-gray-200 text-gray-800 font-medium">90377</td>
+              <td class="px-3 py-1 border-r border-gray-200 text-gray-800">M2026142</td>
+              <td class="px-3 py-1 border-r border-gray-200 font-semibold text-gray-900">MACOBSTECHSM</td>
+              <td class="px-3 py-1 border-r border-gray-200 text-right tabular-nums font-medium">71,57,658.00</td>
+              <td class="px-3 py-1 border-r border-gray-200 text-right tabular-nums">0.00</td>
+              <td class="px-3 py-1 text-right tabular-nums">0.00</td>
+            </tr>
+            <tr class="hover:bg-amber-50/50">
+              <td class="px-3 py-1 border-r border-gray-200 text-gray-800 font-medium">90377</td>
+              <td class="px-3 py-1 border-r border-gray-200 text-gray-800">M2026142</td>
+              <td class="px-3 py-1 border-r border-gray-200 font-semibold text-gray-900">CSMEQ</td>
+              <td class="px-3 py-1 border-r border-gray-200 text-right tabular-nums font-medium">36,34,821.05</td>
+              <td class="px-3 py-1 border-r border-gray-200 text-right tabular-nums">0.00</td>
+              <td class="px-3 py-1 text-right tabular-nums">0.00</td>
+            </tr>
+            <tr class="hover:bg-amber-50/50">
+              <td class="px-3 py-1 border-r border-gray-200 text-gray-800 font-medium">90377</td>
+              <td class="px-3 py-1 border-r border-gray-200 text-gray-800">M2026142</td>
+              <td class="px-3 py-1 border-r border-gray-200 font-semibold text-gray-900">CHOICEINEQ</td>
+              <td class="px-3 py-1 border-r border-gray-200 text-right tabular-nums font-medium">14,27,248.50</td>
+              <td class="px-3 py-1 border-r border-gray-200 text-right tabular-nums">0.00</td>
+              <td class="px-3 py-1 text-right tabular-nums">0.00</td>
+            </tr>
+            <tr class="hover:bg-amber-50/50">
+              <td class="px-3 py-1 border-r border-gray-200 text-gray-800 font-medium">90377</td>
+              <td class="px-3 py-1 border-r border-gray-200 text-gray-800">M2026142</td>
+              <td class="px-3 py-1 border-r border-gray-200 font-semibold text-gray-900">MUFINEQ</td>
+              <td class="px-3 py-1 border-r border-gray-200 text-right tabular-nums font-medium">9,58,510.15</td>
+              <td class="px-3 py-1 border-r border-gray-200 text-right tabular-nums">0.00</td>
+              <td class="px-3 py-1 text-right tabular-nums">0.00</td>
+            </tr>
+            <tr class="hover:bg-amber-50/50">
+              <td class="px-3 py-1 border-r border-gray-200 text-gray-800 font-medium">90377</td>
+              <td class="px-3 py-1 border-r border-gray-200 text-gray-800">M2026142</td>
+              <td class="px-3 py-1 border-r border-gray-200 font-semibold text-gray-900">RESPONINDEQ</td>
+              <td class="px-3 py-1 border-r border-gray-200 text-right tabular-nums font-medium">6,49,112.53</td>
+              <td class="px-3 py-1 border-r border-gray-200 text-right tabular-nums">0.00</td>
+              <td class="px-3 py-1 text-right tabular-nums">0.00</td>
+            </tr>
+            <tr class="hover:bg-amber-50/50">
+              <td class="px-3 py-1 border-r border-gray-200 text-gray-800 font-medium">90377</td>
+              <td class="px-3 py-1 border-r border-gray-200 text-gray-800">M2026142</td>
+              <td class="px-3 py-1 border-r border-gray-200 font-semibold text-gray-900">SIRCAEQ</td>
+              <td class="px-3 py-1 border-r border-gray-200 text-right tabular-nums font-medium">6,47,154.99</td>
+              <td class="px-3 py-1 border-r border-gray-200 text-right tabular-nums">0.00</td>
+              <td class="px-3 py-1 text-right tabular-nums">0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Shared App JS -->
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NSE Clearing - Risk Management CM Dashboard</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg-[#ededed] text-[#333333] select-text antialiased min-w-[1280px]">
+
+  <!-- Top Header Bar -->
+  <header class="bg-white border-b border-gray-300 px-3 py-1 flex items-center justify-between shadow-xs">
+    <div class="flex items-center gap-2">
+      <a href="dashboard.html" class="flex items-center gap-1.5">
+        <svg class="w-7 h-7" viewBox="0 0 100 100" fill="none">
+          <circle cx="50" cy="50" r="42" stroke="#f26522" stroke-width="12" stroke-dasharray="190 70" stroke-linecap="round" />
+          <circle cx="50" cy="50" r="26" fill="#1e3a8a" />
+        </svg>
+        <div class="flex flex-col leading-none">
+          <span class="text-xl font-black tracking-tight text-[#1b365d]">NSE</span>
+          <span class="text-[9px] font-semibold text-gray-500 tracking-wider">Clearing</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="flex items-center gap-4 text-gray-600">
+      <button title="Announcements" class="hover:text-black">
+        <i data-lucide="megaphone" class="w-4 h-4"></i>
+      </button>
+      <div class="flex items-center gap-1.5 cursor-pointer border-l pl-3 border-gray-300">
+        <div class="flex flex-col text-right leading-tight">
+          <span class="text-[11px] font-bold text-gray-700">ACME C...</span>
+          <span class="text-[9px] text-gray-400 font-medium">rms</span>
+        </div>
+        <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-gray-500"></i>
+      </div>
+    </div>
+  </header>
+
+  <!-- Page Layout Body -->
+  <div class="flex min-h-[calc(100vh-42px)]">
+
+    <!-- Left Sidebar -->
+    <aside class="w-[240px] bg-[#e6e6e6] border-r-4 border-[#800000] flex flex-col flex-shrink-0">
+      <div class="p-2 border-b border-gray-300 bg-[#e0e0e0] flex items-center justify-center gap-1.5 text-[11px] font-bold text-gray-700">
+        <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+        <span>DASHBOARD</span>
+      </div>
+
+      <!-- Sidebar Tiles Container -->
+      <div class="text-center text-[10px] font-bold text-gray-700">
+        
+        <!-- Row 1: ONLINE CP & MARGINS -->
+        <div class="grid grid-cols-2">
+          <div class="menu-item border-r border-gray-300">ONLINE CP</div>
+          <button id="margins-toggle-btn" class="menu-item flex items-center justify-center gap-1.5">
+            <span>MARGINS</span>
+            <i id="margins-toggle-icon" data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-600 transition-transform duration-200"></i>
+          </button>
+        </div>
+
+        <!-- Full-Width Submenu Drawer -->
+        <div id="margins-submenu" class="hidden bg-white border-b border-gray-300 px-2 py-2.5">
+          <div class="flex items-center justify-between gap-1">
+            <a href="cm-margin.html" class="margin-badge">CM</a>
+            <a href="#" class="margin-badge">EGR</a>
+            <a href="#" class="margin-badge">FO</a>
+            <a href="#" class="margin-badge">CD</a>
+            <a href="#" class="margin-badge">CO</a>
+          </div>
+        </div>
+
+        <!-- Remaining 2-Column Sidebar Grid Items -->
+        <div class="grid grid-cols-2">
+          <div class="menu-item leading-tight border-r border-gray-300">CLIENT MARGINS/SA REPORTING</div>
+          <div class="menu-item">EXTRANET</div>
+
+          <div class="menu-item border-r border-gray-300">CROSS MARGIN</div>
+          <div class="menu-item">MFSS</div>
+
+          <div class="menu-item border-r border-gray-300">BID CANCELLATION</div>
+          <div class="menu-item">IMS</div>
+
+          <div class="menu-item border-r border-gray-300">FPI-CLIENT MAPPING</div>
+          <div class="menu-item">AUCTION</div>
+
+          <div class="menu-item leading-tight border-r border-gray-300">CD POSITION LIMIT MONITORING</div>
+          <div class="menu-item leading-tight">CASH RELEASE TOWARDS FUNDS PAY-IN</div>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 p-3">
+      <h1 class="text-[#800000] font-bold text-[11px] uppercase tracking-wide mb-2">DASHBOARD</h1>
+
+      <div class="grid grid-cols-2 gap-4 items-start">
+        
+        <!-- Card 1: Collateral & Margin Summary -->
+        <div class="bg-white border border-gray-300 shadow-sm min-h-[430px] flex flex-col">
+          <div class="bg-[#125ba3] text-white px-3 py-1.5 flex items-center justify-between">
+            <span class="font-bold text-[11px] tracking-wide uppercase">COLLATERAL &amp; MARGIN SUMMARY</span>
+            <div class="flex items-center gap-2">
+              <button title="Refresh" class="hover:opacity-75"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i></button>
+              <button title="Minimize" class="hover:opacity-75 font-bold leading-none text-base">-</button>
+            </div>
+          </div>
+
+          <div class="flex border-b border-gray-300 bg-[#f8f9fa] px-2 text-[11px] font-bold gap-6">
+            <button class="margin-tab-btn active" data-segment="CM">CM</button>
+            <button class="margin-tab-btn" data-segment="FO">FO</button>
+            <button class="margin-tab-btn" data-segment="CD">CD</button>
+            <button class="margin-tab-btn" data-segment="CO">CO</button>
+          </div>
+
+          <div id="margin-tab-content" class="flex-1 flex items-center justify-center text-center p-6">
+            <span class="text-[#800000] text-[11px] font-semibold">No Data Available for CM</span>
+          </div>
+        </div>
+
+        <!-- Card 2: Market Wide Position Limit -->
+        <div class="bg-white border border-gray-300 shadow-sm flex flex-col">
+          <div class="bg-[#125ba3] text-white px-3 py-1.5 flex items-center justify-between">
+            <span class="font-bold text-[11px] tracking-wide uppercase">MARKET WIDE POSITION LIMIT</span>
+            <div class="flex items-center gap-2">
+              <button title="Refresh Table" class="hover:opacity-75">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              </button>
+              <button title="Minimize" class="hover:opacity-75 font-bold leading-none text-base">-</button>
+            </div>
+          </div>
+
+          <div class="flex border-b border-gray-300 bg-[#f8f9fa] px-2 text-[11px] font-bold">
+            <span class="border-b-2 border-[#125ba3] text-black py-1 px-2 cursor-pointer">FO</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-[10.5px] border-collapse">
+              <thead>
+                <tr class="border-b border-gray-300 bg-white font-bold text-gray-800">
+                  <th class="px-2 py-1.5 text-left border-r border-gray-200">Symbol</th>
+                  <th class="px-2 py-1.5 text-right border-r border-gray-200">NSE Clearing FutEq OI *</th>
+                  <th class="px-2 py-1.5 text-right border-r border-gray-200">Limit</th>
+                  <th class="px-2 py-1.5 text-right">NSE Clearing FutEq OI %</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                <tr class="hover:bg-amber-50/50 transition-colors">
+                  <td class="px-2 py-1 text-left border-r border-gray-200 font-semibold">MANAPPURAM</td>
+                  <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">8,04,31,817.02</td>
+                  <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">8,22,05,057</td>
+                  <td class="px-2 py-1 text-right tabular-nums">97.84</td>
+                </tr>
+                <tr class="row-alert transition-colors">
+                  <td class="px-2 py-1 text-left border-r border-gray-200 font-semibold">SAIL</td>
+                  <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">20,14,70,843.62</td>
+                  <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">21,68,61,410</td>
+                  <td class="px-2 py-1 text-right tabular-nums">92.90</td>
+                </tr>
+                <tr class="row-alert transition-colors">
+                  <td class="px-2 py-1 text-left border-r border-gray-200 font-semibold">BANDHANBNK</td>
+                  <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">13,53,82,408.02</td>
+                  <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">14,74,42,270</td>
+                  <td class="px-2 py-1 text-right tabular-nums">91.82</td>
+                </tr>
+                <tr class="hover:bg-amber-50/50 transition-colors">
+                  <td class="px-2 py-1 text-left border-r border-gray-200 font-semibold">LICI</td>
+                  <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">5,87,09,449.13</td>
+                  <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">6,64,12,476</td>
+                  <td class="px-2 py-1 text-right tabular-nums">88.40</td>
+                </tr>
+                <tr class="hover:bg-amber-50/50 transition-colors">
+                  <td class="px-2 py-1 text-left border-r border-gray-200 font-semibold">INOXWIND</td>
+                  <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">12,16,67,843.01</td>
+                  <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">14,47,08,707</td>
+                  <td class="px-2 py-1 text-right tabular-nums">84.08</td>
+                </tr>
+                <tr class="hover:bg-amber-50/50 transition-colors">
+                  <td class="px-2 py-1 text-left border-r border-gray-200 font-semibold">KAYNES</td>
+                  <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">37,59,703.28</td>
+                  <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">46,79,418</td>
+                  <td class="px-2 py-1 text-right tabular-nums">80.35</td>
+                </tr>
+                <tr class="hover:bg-amber-50/50 transition-colors">
+                  <td class="px-2 py-1 text-left border-r border-gray-200 font-semibold">LICHSGFIN</td>
+                  <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">3,62,78,642.45</td>
+                  <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">4,51,83,075</td>
+                  <td class="px-2 py-1 text-right tabular-nums">80.29</td>
+                </tr>
+                <tr class="hover:bg-amber-50/50 transition-colors">
+                  <td class="px-2 py-1 text-left border-r border-gray-200 font-semibold">CANBK</td>
+                  <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">40,06,42,326.01</td>
+                  <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">50,43,15,430</td>
+                  <td class="px-2 py-1 text-right tabular-nums">79.44</td>
+                </tr>
+                <tr class="hover:bg-amber-50/50 transition-colors">
+                  <td class="px-2 py-1 text-left border-r border-gray-200 font-semibold">IREDA</td>
+                  <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">9,18,19,753.00</td>
+                  <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">11,90,11,160</td>
+                  <td class="px-2 py-1 text-right tabular-nums">77.15</td>
+                </tr>
+                <tr class="hover:bg-amber-50/50 transition-colors">
+                  <td class="px-2 py-1 text-left border-r border-gray-200 font-semibold">NMDC</td>
+                  <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">38,77,19,213.10</td>
+                  <td class="px-2 py-1 text-right border-r border-gray-200 tabular-nums">51,70,37,525</td>
+                  <td class="px-2 py-1 text-right tabular-nums">74.99</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="px-2 py-2 flex items-center justify-between text-[10.5px] bg-white border-t border-gray-200">
+            <span class="text-[#800000] text-[10px] font-medium">* NSE Clearing FUTEQ OI is provisional Open Interest</span>
+            <a href="#" class="text-[#800000] hover:underline font-semibold text-[11px]">View Detail</a>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
