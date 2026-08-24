@@ -50,7 +50,27 @@ Route::middleware('auth')->group(function () {
     Route::get('/change-password', [ChangePasswordController::class, 'create'])->name('password.change');
     Route::put('/change-password', [ChangePasswordController::class, 'store'])->name('password.update');
 
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\MarginController::class, 'dashboard'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
+
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Margin Pages
+    Route::prefix('margins')->name('margins.')->group(function () {
+        Route::get('/cm', [\App\Http\Controllers\MarginController::class, 'cmMargins'])->name('cm');
+        Route::get('/tm', [\App\Http\Controllers\MarginController::class, 'tmMargins'])->name('tm');
+        Route::get('/clients', [\App\Http\Controllers\MarginController::class, 'cliMargins'])->name('clients');
+        Route::get('/security', [\App\Http\Controllers\MarginController::class, 'securityMargin'])->name('security');
+        Route::get('/settlement', [\App\Http\Controllers\MarginController::class, 'settlementMargin'])->name('settlement');
+    });
+
+    // API Routes for async ops
+    Route::prefix('api/margins')->name('api.margins.')->group(function () {
+        Route::post('/refresh', [\App\Http\Controllers\MarginController::class, 'refresh'])->name('refresh');
+        Route::post('/bulk-generate', [\App\Http\Controllers\MarginController::class, 'triggerBulkGenerate'])->name('bulk-generate');
+        Route::get('/bulk-download/{filename}', [\App\Http\Controllers\MarginController::class, 'downloadBulkFile'])->name('bulk-download')->where('filename', '.*');
+    });
 });

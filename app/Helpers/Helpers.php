@@ -149,3 +149,26 @@ if (!function_exists('encryptNseRequestPayload')) {
         ];
     }
 }
+
+if (!function_exists('decryptNseResponsePayload')) {
+    /**
+     * Helper function to decrypt the response payload body from NSE APIs.
+     * 
+     * @param string $encryptedData Base64 encoded encrypted data string from the API response
+     * @param string $aesKeyB64 Base64 encoded AES key from token response
+     * @param string $aesIvB64 Base64 encoded AES IV from token response
+     * @return array The decrypted and decoded JSON data as an array
+     */
+    function decryptNseResponsePayload(string $encryptedData, string $aesKeyB64, string $aesIvB64): array
+    {
+        $decryptedJson = nseAesDecrypt($encryptedData, $aesKeyB64, $aesIvB64);
+        
+        $decoded = json_decode($decryptedJson, true);
+        
+        if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
+            throw new RuntimeException('Failed to decode decrypted JSON: ' . json_last_error_msg());
+        }
+        
+        return $decoded;
+    }
+}
