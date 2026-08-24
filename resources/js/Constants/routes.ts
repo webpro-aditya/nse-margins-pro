@@ -10,6 +10,7 @@ export const ROUTES = {
     RESET_PASSWORD: '/reset-password',
     CHANGE_PASSWORD: '/change-password',
     DASHBOARD: '/dashboard',
+    CM_MARGIN: '/cm-margin',
 } as const;
 
 export type RouteName = (typeof ROUTES)[keyof typeof ROUTES];
