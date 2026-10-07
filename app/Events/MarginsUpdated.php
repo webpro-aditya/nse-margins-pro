@@ -15,7 +15,8 @@ class MarginsUpdated implements ShouldBroadcastNow
     public function __construct(
         public string $type, 
         public string $segment, 
-        public array $data
+        public array $data,
+        public ?string $error = null
     ) {}
 
     public function broadcastOn(): array

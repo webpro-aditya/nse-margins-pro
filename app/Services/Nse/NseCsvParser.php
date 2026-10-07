@@ -71,6 +71,28 @@ class NseCsvParser
             ];
         }
 
+        if (in_array($segment, ['fo', 'cd', 'co'])) {
+            return [
+                'tmCpCode' => $this->getVal($fields, 0),
+                'tmCpName' => $this->getVal($fields, 1),
+                'cashCollateral' => $this->getFloat($fields, 2),
+                'nonCashCollateral' => $this->getFloat($fields, 3),
+                'effectiveDeposit' => $this->getFloat($fields, 4),
+                'propMargin' => $this->getFloat($fields, 5),
+                'cliMargin' => $this->getFloat($fields, 6),
+                'nonCashBenTM' => $this->getFloat($fields, 7),
+                'nonCashBenCM' => $this->getFloat($fields, 8),
+                'totalMargin' => $this->getFloat($fields, 9),
+                'utilization' => $this->getFloat($fields, 10),
+                'tmCpMargin' => $this->getFloat($fields, 11),
+                'iumtm' => $this->getFloat($fields, 12),
+                'iniMargin' => $this->getFloat($fields, 13),
+                'cobg' => $this->getFloat($fields, 14),
+                'deliveryMargin' => $this->getFloat($fields, 15),
+                'extremeLossMargin' => $this->getFloat($fields, 16),
+            ];
+        }
+
         // CM segment
         return [
             'tmCpCode' => $this->getVal($fields, 0),
@@ -106,6 +128,27 @@ class NseCsvParser
                 'cliMargin' => $this->getFloat($fields, 13),
                 'cliExcessNoncash' => $this->getFloat($fields, 14),
                 'eligibleNonCash' => $this->getFloat($fields, 15),
+            ];
+        }
+
+        if (in_array($segment, ['fo', 'cd', 'co'])) {
+            return [
+                'cmCode' => $this->getVal($fields, 0),
+                'cmName' => $this->getVal($fields, 1),
+                'tmCode' => $this->getVal($fields, 2),
+                'tmName' => $this->getVal($fields, 3),
+                'cliCode' => $this->getVal($fields, 4),
+                'cashCollateral' => $this->getFloat($fields, 5),
+                'nonCashCollateral' => $this->getFloat($fields, 6),
+                'iniMargins' => $this->getFloat($fields, 7),
+                'cobg' => $this->getFloat($fields, 8),
+                'delMargin' => $this->getFloat($fields, 9),
+                'extremeLossMargin' => $this->getFloat($fields, 10),
+                'totalMargins' => $this->getFloat($fields, 11),
+                'mtmPL' => $this->getFloat($fields, 12),
+                'cliExcessMargins' => $this->getFloat($fields, 13),
+                'cliExcessNoncash' => $this->getFloat($fields, 14),
+                'eligibleNoncash' => $this->getFloat($fields, 15),
             ];
         }
 

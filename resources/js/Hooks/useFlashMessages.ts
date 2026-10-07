@@ -12,14 +12,14 @@ import type { FlashMessages } from '@/types';
  *   return redirect()->with('error', 'Error message');
  */
 export function useFlashMessages() {
-    const { flash } = usePage<{ flash: FlashMessages }>().props;
+    const { flash } = usePage<{ flash?: FlashMessages }>().props;
 
     useEffect(() => {
-        if (flash.success) {
+        if (flash?.success) {
             toast.success(flash.success);
         }
-        if (flash.error) {
+        if (flash?.error) {
             toast.error(flash.error);
         }
-    }, [flash.success, flash.error]);
+    }, [flash?.success, flash?.error]);
 }

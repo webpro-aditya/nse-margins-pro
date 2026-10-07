@@ -5,13 +5,19 @@ import '@/echo';
 import { RefreshCw } from 'lucide-react';
 
 interface DashboardProps {
-    cmMargins: any;
+    securityMargins: any[];
+    cmMargins: any[];
+    tmMargins: any[];
     mwplData: any[];
+    segment?: string;
 }
 
-export default function Dashboard({ cmMargins, mwplData }: DashboardProps) {
-  const [activeTab, setActiveTab] = useState('CM');
+export default function Dashboard({ securityMargins: initSecMargins, cmMargins: initCmMargins, tmMargins: initTmMargins, mwplData, segment: initSegment = 'CM' }: DashboardProps) {
+  const [activeTab, setActiveTab] = useState(initSegment);
   const [liveMwpl, setLiveMwpl] = useState<any[]>(mwplData || []);
+  const [securityMargins, setSecurityMargins] = useState<any[]>(initSecMargins || []);
+  const [cmMargins, setCmMargins] = useState<any[]>(initCmMargins || []);
+  const [tmMargins, setTmMargins] = useState<any[]>(initTmMargins || []);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
@@ -20,8 +26,33 @@ export default function Dashboard({ cmMargins, mwplData }: DashboardProps) {
         .listen('MwplUpdated', (e: any) => {
           setLiveMwpl(e.data);
         });
+
+      window.Echo.private('margins')
+        .listen('MarginDataUpdated', (e: any) => {
+            const eventSegment = e.dashboardData?.segment || e.segment;
+            if (eventSegment?.toLowerCase() !== activeTab.toLowerCase()) return;
+            
+            router.reload({
+                only: ['securityMargins', 'cmMargins', 'tmMargins'],
+                preserveState: true,
+                preserveScroll: true,
+                onSuccess: (page: any) => {
+                    if (page.props.securityMargins) setSecurityMargins(page.props.securityMargins);
+                    if (page.props.cmMargins) setCmMargins(page.props.cmMargins);
+                    if (page.props.tmMargins) setTmMargins(page.props.tmMargins);
+                    setIsRefreshing(false);
+                }
+            });
+        });
     }
-  }, []);
+
+    return () => {
+        if (window.Echo) {
+            window.Echo.leaveChannel('mwpl');
+            window.Echo.leaveChannel('margins');
+        }
+    }
+  }, [activeTab]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -31,12 +62,9 @@ export default function Dashboard({ cmMargins, mwplData }: DashboardProps) {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
         },
-        body: JSON.stringify({ type: 'cm', segment: 'cm' })
-    }).then(() => {
-        setTimeout(() => {
-            router.reload({ only: ['cmMargins'] });
-            setIsRefreshing(false);
-        }, 2000);
+        body: JSON.stringify({ type: 'security', segment: activeTab.toLowerCase() })
+    }).catch(() => {
+        setIsRefreshing(false);
     });
   };
 
@@ -61,7 +89,10 @@ export default function Dashboard({ cmMargins, mwplData }: DashboardProps) {
             {['CM', 'FO', 'CD', 'CO'].map((segment) => (
               <button
                 key={segment}
-                onClick={() => setActiveTab(segment)}
+                onClick={() => {
+                  setActiveTab(segment);
+                  router.get('/dashboard', { segment: segment.toLowerCase() }, { preserveState: true, preserveScroll: true, replace: true });
+                }}
                 className={`margin-tab-btn outline-none ${activeTab === segment ? 'active' : ''}`}
               >
                 {segment}
@@ -69,32 +100,38 @@ export default function Dashboard({ cmMargins, mwplData }: DashboardProps) {
             ))}
           </div>
 
-          <div className="flex-1 flex flex-col items-center justify-center text-center p-6">
-            {activeTab === 'CM' && cmMargins && cmMargins.length > 0 ? (
-              <table className="w-full text-[11px] border-collapse text-left border border-gray-200">
-                <tbody>
-                  <tr className="border-b border-gray-200 bg-white">
-                      <th className="px-4 py-2 font-medium text-gray-700">Cash Collateral</th>
-                      <td className="px-4 py-2 text-right tabular-nums">{cmMargins[0].cashCollateral.toLocaleString('en-IN')}</td>
-                  </tr>
-                  <tr className="border-b border-gray-200 bg-gray-50">
-                      <th className="px-4 py-2 font-medium text-gray-700">Non-Cash Collateral</th>
-                      <td className="px-4 py-2 text-right tabular-nums">{cmMargins[0].nonCashCollateral.toLocaleString('en-IN')}</td>
-                  </tr>
-                  <tr className="border-b border-gray-200 bg-white">
-                      <th className="px-4 py-2 font-bold text-indigo-800">Total Margin</th>
-                      <td className="px-4 py-2 text-right font-bold tabular-nums text-indigo-800">{cmMargins[0].totalMargin.toLocaleString('en-IN')}</td>
-                  </tr>
-                  <tr className="border-b border-gray-200 bg-gray-50">
-                      <th className="px-4 py-2 font-medium text-gray-700">Effective Deposit</th>
-                      <td className="px-4 py-2 text-right tabular-nums">{cmMargins[0].effectiveDeposit.toLocaleString('en-IN')}</td>
-                  </tr>
-                  <tr className="border-b border-gray-200 bg-white">
-                      <th className="px-4 py-2 font-medium text-gray-700">Utilization</th>
-                      <td className="px-4 py-2 text-right tabular-nums">{cmMargins[0].utilization}%</td>
-                  </tr>
-                </tbody>
-              </table>
+          <div className="flex-1 flex flex-col text-center p-2">
+            {securityMargins && securityMargins.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-[10.5px] border-collapse">
+                  <thead>
+                    <tr className="border-b border-gray-300 bg-white font-bold text-gray-800">
+                      <th className="px-2 py-1.5 text-left border-r border-gray-200">TM/CP Code</th>
+                      <th className="px-2 py-1.5 text-left border-r border-gray-200">Sett.</th>
+                      <th className="px-2 py-1.5 text-left border-r border-gray-200">Client</th>
+                      <th className="px-2 py-1.5 text-left border-r border-gray-200">Symbol</th>
+                      <th className="px-2 py-1.5 text-right border-r border-gray-200">Total Margin</th>
+                      <th className="px-2 py-1.5 text-right border-r border-gray-200">Buy Qty</th>
+                      <th className="px-2 py-1.5 text-right border-r border-gray-200">Sell Qty</th>
+                      <th className="px-2 py-1.5 text-right">Net Qty</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 bg-white">
+                    {securityMargins.map((row: any, i: number) => (
+                      <tr key={i} className="hover:bg-amber-50/50 text-gray-800">
+                        <td className="px-2 py-1 text-left border-r border-gray-200 font-semibold">{row.tm_cp_code}</td>
+                        <td className="px-2 py-1 text-left border-r border-gray-200">{row.settlement_typ_no}</td>
+                        <td className="px-2 py-1 text-left border-r border-gray-200">{row.cli_code}</td>
+                        <td className="px-2 py-1 text-left border-r border-gray-200 font-semibold">{row.symb_ser}</td>
+                        <td className="px-2 py-1 text-right border-r border-gray-200 tabular-nums font-bold text-indigo-800">{Number(row.total_margin)?.toLocaleString('en-IN')}</td>
+                        <td className="px-2 py-1 text-right border-r border-gray-200 tabular-nums">{Number(row.buy_qty)?.toLocaleString('en-IN')}</td>
+                        <td className="px-2 py-1 text-right border-r border-gray-200 tabular-nums">{Number(row.sell_qty)?.toLocaleString('en-IN')}</td>
+                        <td className="px-2 py-1 text-right tabular-nums">{Number(row.net_qty)?.toLocaleString('en-IN')}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             ) : (
               <span className="text-[#800000] text-[11px] font-semibold">
                 No Data Available for {activeTab}

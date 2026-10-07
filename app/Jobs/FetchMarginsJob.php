@@ -16,45 +16,22 @@ class FetchMarginsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public int $tries = 3;
+    public int $backoff = 30; // seconds between retries
+    public int $timeout = 120;
+
     public function __construct(
         public string $type,
         public string $segment = 'cm',
         public array $params = []
     ) {}
 
-    public function handle(NseApiService $apiService): void
+    public function handle(\App\Services\MarginService $marginService): void
     {
-        $memberCode = config('nse.member_code');
-        $data = [];
-
         try {
-            switch ($this->type) {
-                case 'cm':
-                    $data = $apiService->getCmMargins($memberCode, $this->segment);
-                    break;
-                case 'tm':
-                    $data = $apiService->getTmMargins($memberCode, $this->segment);
-                    break;
-                case 'cli':
-                    $data = $apiService->getCliMargins($memberCode, $this->params['cliList'] ?? [], $this->segment);
-                    break;
-                case 'security':
-                    $data = $apiService->getSecurityMargin($memberCode, $this->params['cliList'] ?? null, $this->segment);
-                    break;
-                case 'settlement':
-                    $data = $apiService->getSettlementMargin($memberCode, $this->params['cliList'] ?? null, $this->segment);
-                    break;
-            }
-
-            // Cache data with 30s TTL to prevent overwhelming API
-            $cacheKey = "nse:margins:{$this->segment}:{$this->type}";
-            Cache::put($cacheKey, $data, 30);
-
-            // Broadcast event
-            MarginsUpdated::dispatch($this->type, $this->segment, $data);
-            
+            $marginService->refreshMargins($this->type, $this->segment, $this->params);
         } catch (\Exception $e) {
-            Log::error("FetchMarginsJob failed for {$this->type} ({$this->segment}): " . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error("FetchMarginsJob failed for {$this->type} ({$this->segment}): " . $e->getMessage());
             $this->fail($e);
         }
     }

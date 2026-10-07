@@ -112,7 +112,7 @@ if (!function_exists('processNseTokenResponse')) {
      */
     function processNseTokenResponse(string $base64TokenData): array
     {
-        $privateKeyPem = file_get_contents(storage_path('app/private/private_key.pem'));
+        $privateKeyPem = file_get_contents(config('nse.private_key_path'));
         
         $token = decryptNseToken($base64TokenData, $privateKeyPem);
         

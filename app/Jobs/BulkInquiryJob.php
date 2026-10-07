@@ -35,21 +35,21 @@ class BulkInquiryJob implements ShouldQueue
             if (Str::startsWith($fileContent, '{')) {
                 $json = json_decode($fileContent, true);
                 if (isset($json['status']) && $json['status'] !== 'SUCCESS') {
-                    // Release back to queue to retry later
-                    $this->release();
+                    // Release back to queue to retry later with a 10s delay
+                    $this->release(10);
                     return;
                 }
             }
 
             // File is ready, save it
-            $filename = "nse/{$this->segment}/{$this->type}/{$this->msgId}.csv";
+            $filename = "bulk-downloads/{$this->msgId}.csv";
             Storage::put($filename, $fileContent);
 
             BulkFileReady::dispatch($this->type, $this->segment, $this->msgId, $filename);
 
         } catch (\Exception $e) {
             Log::error("BulkInquiryJob failed for {$this->msgId}: " . $e->getMessage());
-            $this->release();
+            $this->release(10); // Release with 10s delay instead of immediate retry
         }
     }
 }

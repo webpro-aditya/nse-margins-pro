@@ -41,11 +41,11 @@ export default function TmMargins({ data, segment }: { data: any[], segment: str
                                     <tr key={i} className="hover:bg-slate-50 border-b border-slate-200">
                                         <td className="border border-slate-300 px-4 py-3 text-center">{row.tmCpCode}</td>
                                         <td className="border border-slate-300 px-4 py-3 font-medium">{row.tmCpName}</td>
-                                        <td className="border border-slate-300 px-4 py-3 text-right text-red-600">{row.mtmLoss?.toLocaleString()}</td>
-                                        <td className="border border-slate-300 px-4 py-3 text-right">{row.tradeMargin?.toLocaleString()}</td>
-                                        <td className="border border-slate-300 px-4 py-3 text-right">{row.icmtm?.toLocaleString()}</td>
+                                        <td className="border border-slate-300 px-4 py-3 text-right text-red-600">{Number(row.mtmLoss)?.toLocaleString()}</td>
+                                        <td className="border border-slate-300 px-4 py-3 text-right">{Number(row.tradeMargin)?.toLocaleString()}</td>
+                                        <td className="border border-slate-300 px-4 py-3 text-right">{Number(row.icmtm)?.toLocaleString()}</td>
                                         <td className="border border-slate-300 px-4 py-3 text-right font-bold text-indigo-700 bg-indigo-50/30">
-                                            {row.totalMargin?.toLocaleString()}
+                                            {Number(row.totalMargin)?.toLocaleString()}
                                         </td>
                                     </tr>
                                 )) : (

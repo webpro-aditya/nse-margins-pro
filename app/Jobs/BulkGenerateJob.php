@@ -14,6 +14,10 @@ class BulkGenerateJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public int $tries = 3;
+    public int $backoff = 30; // seconds between retries
+    public int $timeout = 120;
+
     public function __construct(
         public string $type,
         public string $segment = 'cm'

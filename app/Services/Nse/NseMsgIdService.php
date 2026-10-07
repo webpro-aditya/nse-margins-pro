@@ -2,7 +2,7 @@
 
 namespace App\Services\Nse;
 
-use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Cache;
 
 class NseMsgIdService
 {
@@ -16,15 +16,13 @@ class NseMsgIdService
     {
         $memberCode = config('nse.member_code');
         $date = date('Ymd');
-        $redisKey = "nse:msgid:{$date}";
+        $cacheKey = "nse:msgid:{$date}";
 
-        // Increment the sequence for today
-        // This is atomic and thread-safe
-        $sequence = Redis::incr($redisKey);
+        $sequence = Cache::increment($cacheKey);
         
-        // If it's the first one today, set a 24-hour expiry to clean up old keys
+        // Ensure it expires to avoid clutter
         if ($sequence === 1) {
-            Redis::expire($redisKey, 86400); 
+            Cache::put($cacheKey, 1, 86400); // Set expiry for 24 hours
         }
 
         return generateNseMsgId($memberCode, $sequence);

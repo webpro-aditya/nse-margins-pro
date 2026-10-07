@@ -98,3 +98,76 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+
+/* Print Styles */
+@media print {
+  header,
+  aside,
+  .no-print,
+  button,
+  select,
+  .export-buttons-container,
+  nav {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    min-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 10pt !important;
+  }
+
+  div[class*="min-w-"] {
+    min-width: 100% !important;
+  }
+
+  div[class*="max-w-"] {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  thead {
+    display: table-header-group;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    background-color: #800000 !important;
+    color: #ffffff !important;
+  }
+
+  thead th {
+    background-color: #800000 !important;
+    color: #ffffff !important;
+    border: 1px solid #444444 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    padding: 4px 6px !important;
+    font-size: 8pt !important;
+  }
+
+  tbody td {
+    border: 1px solid #cccccc !important;
+    padding: 4px 6px !important;
+    font-size: 8pt !important;
+    color: #000000 !important;
+  }
+
+  @page {
+    size: landscape;
+    margin: 10mm;
+  }
+}

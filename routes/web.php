@@ -1,14 +1,19 @@
 <?php
 
 use App\Http\Controllers\Auth\ChangePasswordController;
+use App\Http\Controllers\Segments\CmController;
+use App\Http\Controllers\Segments\FoController;
+use App\Http\Controllers\Segments\CdController;
+use App\Http\Controllers\Segments\CoController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\MarginController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Segments\SettlementController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-
-include 'test.php';
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -50,27 +55,36 @@ Route::middleware('auth')->group(function () {
     Route::get('/change-password', [ChangePasswordController::class, 'create'])->name('password.change');
     Route::put('/change-password', [ChangePasswordController::class, 'store'])->name('password.update');
 
-    Route::get('/dashboard', [\App\Http\Controllers\MarginController::class, 'dashboard'])
+    Route::get('/dashboard', [MarginController::class, 'dashboard'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    // V2 UI Routes
+    Route::prefix('v2')->name('v2.')->middleware(['auth', 'verified'])->group(function () {
+        Route::get('/dashboard', [MarginController::class, 'dashboardV2'])->name('dashboard');
+        Route::get('/margins/{segment}', [MarginController::class, 'marginsV2'])->name('margins');
+    });
 
+    // V3 UI Routes (Sidebar layout)
+    Route::prefix('v3')->name('v3.')->middleware(['auth', 'verified'])->group(function () {
+        Route::get('/dashboard', [MarginController::class, 'dashboardV3'])->name('dashboard');
+        Route::get('/margins/{segment}', [MarginController::class, 'marginsV3'])->name('margins');
+    });
+
+    // Profile routes removed as controller doesn't exist
     // Margin Pages
     Route::prefix('margins')->name('margins.')->group(function () {
-        Route::get('/cm', [\App\Http\Controllers\MarginController::class, 'cmMargins'])->name('cm');
-        Route::get('/tm', [\App\Http\Controllers\MarginController::class, 'tmMargins'])->name('tm');
-        Route::get('/clients', [\App\Http\Controllers\MarginController::class, 'cliMargins'])->name('clients');
-        Route::get('/security', [\App\Http\Controllers\MarginController::class, 'securityMargin'])->name('security');
-        Route::get('/settlement', [\App\Http\Controllers\MarginController::class, 'settlementMargin'])->name('settlement');
+        Route::get('/cm', [CmController::class, 'index'])->name('cm');
+        Route::get('/fo', [FoController::class, 'index'])->name('fo');
+        Route::get('/cd', [CdController::class, 'index'])->name('cd');
+        Route::get('/co', [CoController::class, 'index'])->name('co');
+        Route::get('/settlement', [SettlementController::class, 'index'])->name('settlement');
     });
 
     // API Routes for async ops
     Route::prefix('api/margins')->name('api.margins.')->group(function () {
-        Route::post('/refresh', [\App\Http\Controllers\MarginController::class, 'refresh'])->name('refresh');
-        Route::post('/bulk-generate', [\App\Http\Controllers\MarginController::class, 'triggerBulkGenerate'])->name('bulk-generate');
-        Route::get('/bulk-download/{filename}', [\App\Http\Controllers\MarginController::class, 'downloadBulkFile'])->name('bulk-download')->where('filename', '.*');
+        Route::post('/refresh', [MarginController::class, 'refresh'])->name('refresh');
+        Route::post('/bulk-generate', [MarginController::class, 'triggerBulkGenerate'])->name('bulk-generate');
+        Route::get('/bulk-download/{filename}', [MarginController::class, 'downloadBulkFile'])->name('bulk-download')->where('filename', '.*');
     });
 });

@@ -120,12 +120,11 @@ export default function DashboardLayout({ children, header }: DashboardLayoutPro
                   isMarginsMenuOpen ? 'block' : 'hidden'
                 } bg-white border-b border-gray-300 px-2 py-2.5`}
               >
-                <div className="flex items-center justify-between gap-1">
+                <div className="flex items-center justify-around gap-1">
                   <Link href="/margins/cm" className={`margin-badge ${url.includes('/margins/cm') ? 'bg-[#800000] text-white' : ''}`}>CM</Link>
-                  <Link href="/margins/tm" className={`margin-badge ${url.includes('/margins/tm') ? 'bg-[#800000] text-white' : ''}`}>EGR</Link>
-                  <Link href="/margins/clients" className={`margin-badge ${url.includes('/margins/clients') ? 'bg-[#800000] text-white' : ''}`}>FO</Link>
-                  <Link href="/margins/security" className={`margin-badge ${url.includes('/margins/security') ? 'bg-[#800000] text-white' : ''}`}>CD</Link>
-                  <Link href="/margins/settlement" className={`margin-badge ${url.includes('/margins/settlement') ? 'bg-[#800000] text-white' : ''}`}>CO</Link>
+                  <Link href="/margins/fo" className={`margin-badge ${url.includes('/margins/fo') ? 'bg-[#800000] text-white' : ''}`}>FO</Link>
+                  <Link href="/margins/cd" className={`margin-badge ${url.includes('/margins/cd') ? 'bg-[#800000] text-white' : ''}`}>CD</Link>
+                  <Link href="/margins/co" className={`margin-badge ${url.includes('/margins/co') ? 'bg-[#800000] text-white' : ''}`}>CO</Link>
                 </div>
               </div>
 
