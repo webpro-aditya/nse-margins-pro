@@ -9,6 +9,7 @@ use App\Services\MwplService;
 use App\Services\Nse\NseApiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -36,7 +37,7 @@ class MarginController extends Controller
                 FetchMwplJob::dispatch();
             }
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Failed to fetch main dashboard data: " . $e->getMessage());
+            Log::error("Failed to fetch main dashboard data: " . $e->getMessage());
             $error = 'Unable to load dashboard data. Please try again later.';
         }
 
@@ -50,15 +51,16 @@ class MarginController extends Controller
         ]);
     }
 
-    public function dashboardV2()
+    public function dashboardV2(Request $request)
     {
         $memberCode = config('nse.member_code');
+        $segment = $request->query('segment', 'cm');
         $dashboardData = [];
         $mwplData = [];
         $error = null;
         
         try {
-            $dashboardData = $this->marginService->getDashboardData($memberCode);
+            $dashboardData = $this->marginService->getDashboardData($memberCode, strtolower($segment));
 
             $mwplData = $this->mwplService->getCachedMwplData();
             if (empty($mwplData)) {
@@ -66,7 +68,7 @@ class MarginController extends Controller
                 FetchMwplJob::dispatch();
             }
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Failed to fetch main dashboard data v2: " . $e->getMessage());
+            Log::error("Failed to fetch main dashboard data v2: " . $e->getMessage());
             $error = 'Unable to load dashboard data. Please try again later.';
         }
 
@@ -75,19 +77,21 @@ class MarginController extends Controller
             'cmMargins' => $dashboardData['cmMargins'] ?? [],
             'tmMargins' => $dashboardData['tmMargins'] ?? [],
             'mwplData' => $mwplData,
+            'segment' => strtoupper($segment),
             'error' => $error,
         ]);
     }
 
-    public function dashboardV3()
+    public function dashboardV3(Request $request)
     {
         $memberCode = config('nse.member_code');
+        $segment = $request->query('segment', 'cm');
         $dashboardData = [];
         $mwplData = [];
         $error = null;
         
         try {
-            $dashboardData = $this->marginService->getDashboardData($memberCode);
+            $dashboardData = $this->marginService->getDashboardData($memberCode, strtolower($segment));
 
             $mwplData = $this->mwplService->getCachedMwplData();
             if (empty($mwplData)) {
@@ -95,7 +99,7 @@ class MarginController extends Controller
                 FetchMwplJob::dispatch();
             }
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Failed to fetch main dashboard data v3: " . $e->getMessage());
+            Log::error("Failed to fetch main dashboard data v3: " . $e->getMessage());
             $error = 'Unable to load dashboard data. Please try again later.';
         }
 
@@ -104,6 +108,7 @@ class MarginController extends Controller
             'cmMargins' => $dashboardData['cmMargins'] ?? [],
             'tmMargins' => $dashboardData['tmMargins'] ?? [],
             'mwplData' => $mwplData,
+            'segment' => strtoupper($segment),
             'error' => $error,
         ]);
     }
@@ -117,7 +122,7 @@ class MarginController extends Controller
         try {
             $dashboardData = $this->marginService->getDashboardData($memberCode, $segment);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Failed to fetch margins v3 data: " . $e->getMessage());
+            Log::error("Failed to fetch margins v3 data: " . $e->getMessage());
             $error = 'Unable to load margin data. Please try again later.';
         }
 
@@ -141,7 +146,7 @@ class MarginController extends Controller
         try {
             $dashboardData = $this->marginService->getDashboardData($memberCode, $segment);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Failed to fetch margins v2 data: " . $e->getMessage());
+            Log::error("Failed to fetch margins v2 data: " . $e->getMessage());
             $error = 'Unable to load margin data. Please try again later.';
         }
 
@@ -175,7 +180,9 @@ class MarginController extends Controller
         $params = $request->input('params', []);
 
         if ($type === 'total') {
-            FetchMarginsJob::dispatch('cm', $segment, $params);
+            if (strtolower($segment) !== 'slb') {
+                FetchMarginsJob::dispatch('cm', $segment, $params);
+            }
             FetchMarginsJob::dispatch('tm', $segment, $params);
         } else {
             FetchMarginsJob::dispatch($type, $segment, $params);

@@ -18,11 +18,16 @@ class NseMsgIdService
         $date = date('Ymd');
         $cacheKey = "nse:msgid:{$date}";
 
-        $sequence = Cache::increment($cacheKey);
-        
-        // Ensure it expires to avoid clutter
-        if ($sequence === 1) {
-            Cache::put($cacheKey, 1, 86400); // Set expiry for 24 hours
+        try {
+            $sequence = Cache::increment($cacheKey);
+            
+            // Ensure it expires to avoid clutter
+            if ($sequence === 1) {
+                Cache::put($cacheKey, 1, 86400); // Set expiry for 24 hours
+            }
+        } catch (\Throwable $e) {
+            static $fallbackSeq = 1;
+            $sequence = $fallbackSeq++;
         }
 
         return generateNseMsgId($memberCode, $sequence);

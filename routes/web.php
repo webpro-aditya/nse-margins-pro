@@ -11,6 +11,7 @@ use App\Http\Controllers\MarginController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Segments\SettlementController;
+use App\Http\Controllers\Segments\SlbController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -75,9 +76,11 @@ Route::middleware('auth')->group(function () {
     // Margin Pages
     Route::prefix('margins')->name('margins.')->group(function () {
         Route::get('/cm', [CmController::class, 'index'])->name('cm');
+        Route::get('/egr', [CmController::class, 'index'])->name('egr');
         Route::get('/fo', [FoController::class, 'index'])->name('fo');
         Route::get('/cd', [CdController::class, 'index'])->name('cd');
         Route::get('/co', [CoController::class, 'index'])->name('co');
+        Route::get('/slb', [SlbController::class, 'index'])->name('slb');
         Route::get('/settlement', [SettlementController::class, 'index'])->name('settlement');
     });
 

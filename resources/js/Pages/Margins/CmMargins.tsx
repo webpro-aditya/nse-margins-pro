@@ -113,11 +113,25 @@ export default function CmMargins({
                     segment: segment
                 })
             });
-            window.location.reload();
+            
+            // Fallback: If websocket fails or takes too long, force a silent Inertia reload after 3s
+            setTimeout(() => {
+                router.reload({
+                    only: ['tmMargins', 'securityMargins', 'settlementMargins', 'cmMargins', 'data'],
+                    preserveScroll: true,
+                    preserveState: true,
+                    onSuccess: (page: any) => {
+                        if (page.props.tmMargins) setTmData(extractData(page.props.tmMargins));
+                        if (page.props.securityMargins) setSecData(extractData(page.props.securityMargins));
+                        if (page.props.settlementMargins) setSetData(extractData(page.props.settlementMargins));
+                        setIsRefreshing(false);
+                    }
+                });
+            }, 3000);
+            
         } catch (error) {
             console.error('Failed to refresh data:', error);
-        } finally {
-            setTimeout(() => setIsRefreshing(false), 1500);
+            setIsRefreshing(false);
         }
     };
 
@@ -304,6 +318,7 @@ export default function CmMargins({
                                     <thead className="bg-[#800000] text-white">
                                         <tr>
                                             <th className="border border-slate-400 px-3 py-2.5 text-center font-semibold text-[11px] leading-tight">TM CODE</th>
+                                            <th className="border border-slate-400 px-3 py-2.5 text-center font-semibold text-[11px] leading-tight">CLIENT CODE</th>
                                             <th className="border border-slate-400 px-3 py-2.5 text-center font-semibold text-[11px] leading-tight">SETTLEMENT TYPE & NUMBER</th>
                                             <th className="border border-slate-400 px-3 py-2.5 text-center font-semibold text-[11px] leading-tight">TOTAL SETTLEMENT-LEVEL MARGIN</th>
                                             <th className="border border-slate-400 px-3 py-2.5 text-center font-semibold text-[11px] leading-tight">UPFRONT MARGIN</th>
@@ -315,6 +330,7 @@ export default function CmMargins({
                                         {setData && setData.length > 0 ? setData.map((row, i) => (
                                             <tr key={i} className="hover:bg-amber-50/30 border-b border-slate-200">
                                                 <td className="border border-slate-300 px-4 py-2.5 text-center font-medium">{row.tm_cp_code}</td>
+                                                <td className="border border-slate-300 px-4 py-2.5 text-center font-bold text-slate-800">{row.cli_code || '-'}</td>
                                                 <td className="border border-slate-300 px-4 py-2.5 text-center font-bold text-slate-700">{row.settlement_typ_no}</td>
                                                 <td className="border border-slate-300 px-4 py-2.5 text-center font-bold text-indigo-700">₹{Number(row.total_margins)?.toLocaleString()}</td>
                                                 <td className="border border-slate-300 px-4 py-2.5 text-center">₹{Number(row.upfront_margin)?.toLocaleString()}</td>
@@ -323,7 +339,7 @@ export default function CmMargins({
                                             </tr>
                                         )) : (
                                             <tr>
-                                                <td colSpan={6} className="text-center p-8 text-slate-500 font-medium">No settlement level margin data available</td>
+                                                <td colSpan={7} className="text-center p-8 text-slate-500 font-medium">No settlement level margin data available</td>
                                             </tr>
                                         )}
                                     </tbody>
@@ -345,6 +361,7 @@ export default function CmMargins({
                                     <thead className="bg-[#800000] text-white">
                                         <tr>
                                             <th className="border border-slate-400 px-3 py-2.5 text-center font-semibold text-[11px] leading-tight">TM CODE</th>
+                                            <th className="border border-slate-400 px-3 py-2.5 text-center font-semibold text-[11px] leading-tight">CLIENT CODE</th>
                                             <th className="border border-slate-400 px-3 py-2.5 text-center font-semibold text-[11px] leading-tight">SETTLEMENT TYPE & NO.</th>
                                             <th className="border border-slate-400 px-3 py-2.5 text-center font-semibold text-[11px] leading-tight">SYMBOL & SERIES</th>
                                             <th className="border border-slate-400 px-3 py-2.5 text-right font-semibold text-[11px] leading-tight">UPFRONT MARGINS</th>
@@ -356,6 +373,7 @@ export default function CmMargins({
                                         {secData && secData.length > 0 ? secData.map((row, i) => (
                                             <tr key={i} className="hover:bg-emerald-50/30 border-b border-slate-200">
                                                 <td className="border border-slate-300 px-4 py-2 text-center font-medium">{row.tm_cp_code}</td>
+                                                <td className="border border-slate-300 px-4 py-2 text-center font-bold text-slate-800">{row.cli_code || '-'}</td>
                                                 <td className="border border-slate-300 px-4 py-2 text-center">{row.settlement_typ_no}</td>
                                                 <td className="border border-slate-300 px-4 py-2 text-center font-bold text-slate-700 bg-slate-50">{row.symb_ser}</td>
                                                 <td className="border border-slate-300 px-4 py-2 text-right font-bold text-indigo-700">₹{Number(row.total_margin)?.toLocaleString()}</td>
@@ -364,7 +382,7 @@ export default function CmMargins({
                                             </tr>
                                         )) : (
                                             <tr>
-                                                <td colSpan={6} className="text-center p-8 text-slate-500 font-medium">No security margin data available</td>
+                                                <td colSpan={7} className="text-center p-8 text-slate-500 font-medium">No security margin data available</td>
                                             </tr>
                                         )}
                                     </tbody>

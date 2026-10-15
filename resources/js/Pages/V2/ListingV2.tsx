@@ -73,7 +73,7 @@ export default function ListingV2({
                 .listen('MarginDataUpdated', (e: any) => {
                     const eventSegment = e.dashboardData?.segment || e.segment;
                     if (eventSegment?.toLowerCase() !== seg) return;
-                    
+
                     const eventType = e.dashboardData?.type || e.type;
                     const propsToReload = [];
                     if (eventType === 'tm') propsToReload.push('tmMargins');
@@ -81,7 +81,7 @@ export default function ListingV2({
                     if (eventType === 'cli') propsToReload.push('cliMargins');
                     if (eventType === 'security') propsToReload.push('securityMargins');
                     if (eventType === 'settlement') propsToReload.push('settlementMargins');
-                    
+
                     if (propsToReload.length === 0) return;
 
                     router.reload({
@@ -137,10 +137,10 @@ export default function ListingV2({
 
             // Fallback partial reload just in case websockets fail (Version 1 workflow)
             setTimeout(() => {
-                router.reload({ 
-                    only: ['tmMargins', 'cmMargins', 'cliMargins', 'securityMargins', 'settlementMargins', 'data'], 
-                    preserveScroll: true, 
-                    preserveState: true 
+                router.reload({
+                    only: ['tmMargins', 'cmMargins', 'cliMargins', 'securityMargins', 'settlementMargins', 'data'],
+                    preserveScroll: true,
+                    preserveState: true
                 });
                 setIsRefreshing(false);
             }, 3000);
@@ -197,11 +197,10 @@ export default function ListingV2({
                             key={index}
                             onClick={() => link.url && router.visit(link.url, { preserveScroll: true, preserveState: true })}
                             disabled={!link.url}
-                            className={`px-3 py-1.5 text-xs rounded transition-colors ${
-                                link.active 
-                                    ? 'bg-primary text-primary-foreground font-semibold' 
+                            className={`px-3 py-1.5 text-xs rounded transition-colors ${link.active
+                                    ? 'bg-primary text-primary-foreground font-semibold'
                                     : 'bg-muted/50 hover:bg-muted text-muted-foreground'
-                            } ${!link.url ? 'opacity-40 cursor-not-allowed' : ''}`}
+                                } ${!link.url ? 'opacity-40 cursor-not-allowed' : ''}`}
                             dangerouslySetInnerHTML={{ __html: label }}
                         />
                     );
@@ -212,10 +211,26 @@ export default function ListingV2({
 
     // Export Data formatting based on active segment & view mode
     const getExportData = () => {
-        if (seg === 'cm') {
+        if (seg === 'cm' || seg === 'slb') {
             if (cmView === 'total') {
-                const headers = ['TM CODE', 'TM NAME', 'TM CASH (A)', 'TM NON-CASH (B)', 'TM/CP EFFECTIVE DEPOSIT (C)', 'TM PROP / CP MARGINS (D)', 'CLI MARGINS > 90% (E)', 'NON-CASH BEN TM (F)', 'NON-CASH BEN CM (G)', 'TOTAL MARGINS (H)', 'UTILISATION %', 'APPROX. AVAILABLE MARGIN'];
-                const rows = (tmData || []).map(row => [
+                const headers = seg === 'slb'
+                    ? ['TM CODE', 'TM NAME', 'TM CASH (A)', 'TM NON-CASH (B)', 'EFFECTIVE DEPOSIT (C)', 'MARGIN ON FIRST LEG (N)', 'MARGIN ON REVERSE LEG (O)', 'PROP MARGIN (D=N+O)', 'CLI MARGIN > 90% (E)', 'NON-CASH BEN TM (F)', 'TOTAL MARGIN (H=D+E-F)', 'UTILISATION %', 'APPROX. AVAILABLE MARGIN']
+                    : ['TM CODE', 'TM NAME', 'TM CASH (A)', 'TM NON-CASH (B)', 'TM/CP EFFECTIVE DEPOSIT (C)', 'TM PROP / CP MARGINS (D)', 'CLI MARGINS > 90% (E)', 'NON-CASH BEN TM (F)', 'NON-CASH BEN CM (G)', 'TOTAL MARGINS (H)', 'UTILISATION %', 'APPROX. AVAILABLE MARGIN'];
+                const rows = (tmData || []).map(row => seg === 'slb' ? [
+                    row.tm_cp_code || '',
+                    row.tm_cp_name || '',
+                    row.cash_collateral ?? 0,
+                    row.non_cash_collateral ?? 0,
+                    row.effective_deposit ?? 0,
+                    row.first_leg_margin ?? 0,
+                    row.reverse_leg_margin ?? 0,
+                    row.prop_margin ?? 0,
+                    row.cli_margin ?? 0,
+                    row.non_cash_ben_tm ?? 0,
+                    row.total_margin ?? 0,
+                    `${row.utilization ?? 0}%`,
+                    (row.effective_deposit || 0) - (row.total_margin || 0)
+                ] : [
                     row.tm_cp_code || '',
                     row.tm_cp_name || '',
                     row.cash_collateral ?? 0,
@@ -231,8 +246,18 @@ export default function ListingV2({
                 ]);
                 return { headers, rows };
             } else if (cmView === 'settlement') {
-                const headers = ['TM CODE', 'CLIENT CODE', 'SETTLEMENT NO.', 'UPFRONT MARGIN', 'ICMTM', 'MTM LOSS', 'TOTAL MARGINS'];
-                const rows = (setData || []).map(row => [
+                const headers = seg === 'slb'
+                    ? ['TM CODE', 'CLIENT CODE', 'SETTLEMENT NO.', 'BUY MARGIN', 'SELL MARGIN', 'LEND FEE', 'TOTAL MARGINS']
+                    : ['TM CODE', 'CLIENT CODE', 'SETTLEMENT NO.', 'UPFRONT MARGIN', 'ICMTM', 'MTM LOSS', 'TOTAL MARGINS'];
+                const rows = (setData || []).map(row => seg === 'slb' ? [
+                    row.tm_cp_code || '',
+                    row.cli_code || '',
+                    row.settlement_typ_no || '',
+                    row.buy_margin ?? 0,
+                    row.sell_margin ?? 0,
+                    row.lend_fee ?? 0,
+                    row.total_margins ?? 0,
+                ] : [
                     row.tm_cp_code || '',
                     row.cli_code || '',
                     row.settlement_typ_no || '',
@@ -243,8 +268,22 @@ export default function ListingV2({
                 ]);
                 return { headers, rows };
             } else {
-                const headers = ['TM CODE', 'CLIENT CODE', 'SECURITY SYMBOL', 'SERIES', 'EXPIRY DATE', 'STRIKE PRICE', 'OPTION TYPE', 'QUANTITY', 'TOTAL MARGIN'];
-                const rows = (secData || []).map(row => [
+                const headers = seg === 'slb'
+                    ? ['TM CODE', 'CLIENT CODE', 'SETTLEMENT NO.', 'SYMBOL & SERIES', 'BUY QTY', 'BUY MARGIN', 'SELL QTY', 'SELL MARGIN', 'OBLIGATION', 'LEND FEE', 'TOTAL MARGIN']
+                    : ['TM CODE', 'CLIENT CODE', 'SECURITY SYMBOL', 'SERIES', 'EXPIRY DATE', 'STRIKE PRICE', 'OPTION TYPE', 'QUANTITY', 'TOTAL MARGIN'];
+                const rows = (secData || []).map(row => seg === 'slb' ? [
+                    row.tm_cp_code || '',
+                    row.cli_code || '',
+                    row.settlement_typ_no || '',
+                    row.symb_ser || '',
+                    row.buy_qty ?? 0,
+                    row.buy_margin ?? 0,
+                    row.sell_qty ?? 0,
+                    row.sell_margin ?? 0,
+                    row.obligation ?? 0,
+                    row.lend_fee ?? 0,
+                    row.total_margin ?? 0,
+                ] : [
                     row.tm_cp_code || '',
                     row.cli_code || '',
                     row.sec_symbol || '',
@@ -337,7 +376,7 @@ export default function ListingV2({
             <Head title={`${segment.toUpperCase()} Margins (V2)`} />
 
             <div className="flex flex-col gap-6">
-                
+
                 {/* 1. Header & Actions Bar */}
                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                     <div className="flex items-center gap-4">
@@ -360,15 +399,15 @@ export default function ListingV2({
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3">
-                        <ExportButtons 
+                        <ExportButtons
                             getData={getExportData}
                             title={`${segment.toUpperCase()}_MARGINS`}
                             segment={segment}
                             memberCode={memberCode}
                         />
-                        <Button 
-                            variant="outline" 
-                            onClick={handleRefresh} 
+                        <Button
+                            variant="outline"
+                            onClick={handleRefresh}
                             disabled={isRefreshing}
                             className="bg-background/50 backdrop-blur-sm shadow-xs"
                         >
@@ -391,7 +430,8 @@ export default function ListingV2({
                 )}
 
                 {/* 2. Sub-View Mode Selectors for CM and FO */}
-                {seg === 'cm' && (
+                {/* 2. Sub-View Mode Selectors for CM, SLB and FO */}
+                {(seg === 'cm' || seg === 'slb') && (
                     <div className="flex gap-2 border-b border-border/50 pb-2">
                         <Button
                             variant={cmView === 'total' ? 'secondary' : 'ghost'}
@@ -456,7 +496,7 @@ export default function ListingV2({
                             <div className="flex items-center gap-2.5">
                                 <Layers className="w-4 h-4 text-primary" />
                                 <CardTitle className="text-base uppercase tracking-wide">
-                                    {seg === 'cm' && (cmView === 'total' ? 'CM Margin Summary' : cmView === 'settlement' ? 'Settlement-Level Margins' : 'Security Margins')}
+                                    {(seg === 'cm' || seg === 'slb') && (cmView === 'total' ? `${seg.toUpperCase()} Margin Summary` : cmView === 'settlement' ? `${seg.toUpperCase()} Settlement-Level Margins` : `${seg.toUpperCase()} Security Margins`)}
                                     {seg === 'fo' && (foView === 'summary' ? 'FO Margin Summary' : foView === 'prop_breakup' ? 'Proprietary Margin Breakup' : 'Client Margins')}
                                     {seg === 'cd' && 'CD Margin Summary'}
                                     {seg === 'co' && 'CO Settlement Margins Detail'}
@@ -465,9 +505,9 @@ export default function ListingV2({
                         </div>
                     </CardHeader>
                     <CardContent className="p-0">
-                        
-                        {/* CM SEGMENT TABLES */}
-                        {seg === 'cm' && (
+
+                        {/* CM & SLB SEGMENT TABLES */}
+                        {(seg === 'cm' || seg === 'slb') && (
                             <>
                                 {cmView === 'total' && (
                                     <div className="overflow-x-auto">
@@ -479,11 +519,17 @@ export default function ListingV2({
                                                     <th className="px-4 py-3 text-right">TM Cash (A)</th>
                                                     <th className="px-4 py-3 text-right">TM Non-Cash (B)</th>
                                                     <th className="px-4 py-3 text-right">Effective Deposit (C)</th>
-                                                    <th className="px-4 py-3 text-right">Prop Margin (D)</th>
+                                                    {seg === 'slb' && (
+                                                        <>
+                                                            <th className="px-4 py-3 text-right">First Leg Margin (N)</th>
+                                                            <th className="px-4 py-3 text-right">Reverse Leg Margin (O)</th>
+                                                        </>
+                                                    )}
+                                                    <th className="px-4 py-3 text-right">{seg === 'slb' ? 'Prop Margin (D=N+O)' : 'Prop Margin (D)'}</th>
                                                     <th className="px-4 py-3 text-right">Cli Margins (E)</th>
                                                     <th className="px-4 py-3 text-right">Non-Cash Ben TM (F)</th>
-                                                    <th className="px-4 py-3 text-right">Non-Cash Ben CM (G)</th>
-                                                    <th className="px-4 py-3 text-right">Total Margins (H)</th>
+                                                    {seg !== 'slb' && <th className="px-4 py-3 text-right">Non-Cash Ben CM (G)</th>}
+                                                    <th className="px-4 py-3 text-right">{seg === 'slb' ? 'Total Margins (H=D+E-F)' : 'Total Margins (H)'}</th>
                                                     <th className="px-4 py-3 text-right">Utilization %</th>
                                                     <th className="px-4 py-3 text-right">Approx Available</th>
                                                 </tr>
@@ -498,10 +544,16 @@ export default function ListingV2({
                                                             <td className="px-4 py-3 text-right font-mono">₹{Number(row.cash_collateral)?.toLocaleString()}</td>
                                                             <td className="px-4 py-3 text-right font-mono">₹{Number(row.non_cash_collateral)?.toLocaleString()}</td>
                                                             <td className="px-4 py-3 text-right font-mono font-medium">₹{Number(row.effective_deposit)?.toLocaleString()}</td>
+                                                            {seg === 'slb' && (
+                                                                <>
+                                                                    <td className="px-4 py-3 text-right font-mono text-primary font-semibold">₹{Number(row.first_leg_margin)?.toLocaleString()}</td>
+                                                                    <td className="px-4 py-3 text-right font-mono text-primary font-semibold">₹{Number(row.reverse_leg_margin)?.toLocaleString()}</td>
+                                                                </>
+                                                            )}
                                                             <td className="px-4 py-3 text-right font-mono">₹{Number(row.prop_margin)?.toLocaleString()}</td>
                                                             <td className="px-4 py-3 text-right font-mono">₹{Number(row.cli_margin)?.toLocaleString()}</td>
                                                             <td className="px-4 py-3 text-right font-mono">₹{Number(row.non_cash_ben_tm)?.toLocaleString()}</td>
-                                                            <td className="px-4 py-3 text-right font-mono">₹{Number(row.non_cash_ben_cm)?.toLocaleString()}</td>
+                                                            {seg !== 'slb' && <td className="px-4 py-3 text-right font-mono">₹{Number(row.non_cash_ben_cm)?.toLocaleString()}</td>}
                                                             <td className="px-4 py-3 text-right font-mono font-bold text-primary">₹{Number(row.total_margin)?.toLocaleString()}</td>
                                                             <td className="px-4 py-3 text-right font-mono font-bold">
                                                                 <Badge variant="outline" className="font-mono">{row.utilization}%</Badge>
@@ -511,7 +563,7 @@ export default function ListingV2({
                                                     );
                                                 }) : (
                                                     <tr>
-                                                        <td colSpan={12} className="text-center py-12 text-muted-foreground">No TM margin data available</td>
+                                                        <td colSpan={seg === 'slb' ? 13 : 12} className="text-center py-12 text-muted-foreground">No TM margin data available</td>
                                                     </tr>
                                                 )}
                                             </tbody>
@@ -528,9 +580,19 @@ export default function ListingV2({
                                                     <th className="px-4 py-3">TM Code</th>
                                                     <th className="px-4 py-3">Client Code</th>
                                                     <th className="px-4 py-3">Settlement No.</th>
-                                                    <th className="px-4 py-3 text-right">Upfront Margin</th>
-                                                    <th className="px-4 py-3 text-right">ICMTM</th>
-                                                    <th className="px-4 py-3 text-right">MTM Loss</th>
+                                                    {seg === 'slb' ? (
+                                                        <>
+                                                            <th className="px-4 py-3 text-right">Buy Margin</th>
+                                                            <th className="px-4 py-3 text-right">Sell Margin</th>
+                                                            <th className="px-4 py-3 text-right">Lend Fee</th>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <th className="px-4 py-3 text-right">Upfront Margin</th>
+                                                            <th className="px-4 py-3 text-right">ICMTM</th>
+                                                            <th className="px-4 py-3 text-right">MTM Loss</th>
+                                                        </>
+                                                    )}
                                                     <th className="px-4 py-3 text-right">Total Margins</th>
                                                 </tr>
                                             </thead>
@@ -540,9 +602,19 @@ export default function ListingV2({
                                                         <td className="px-4 py-3 font-semibold">{row.tm_cp_code}</td>
                                                         <td className="px-4 py-3">{row.cli_code}</td>
                                                         <td className="px-4 py-3">{row.settlement_typ_no}</td>
-                                                        <td className="px-4 py-3 text-right font-mono">₹{Number(row.upfront_margin)?.toLocaleString()}</td>
-                                                        <td className="px-4 py-3 text-right font-mono">₹{Number(row.icmtm)?.toLocaleString()}</td>
-                                                        <td className="px-4 py-3 text-right font-mono text-destructive">₹{Number(row.mtm_loss)?.toLocaleString()}</td>
+                                                        {seg === 'slb' ? (
+                                                            <>
+                                                                <td className="px-4 py-3 text-right font-mono">₹{Number(row.buy_margin)?.toLocaleString()}</td>
+                                                                <td className="px-4 py-3 text-right font-mono">₹{Number(row.sell_margin)?.toLocaleString()}</td>
+                                                                <td className="px-4 py-3 text-right font-mono">₹{Number(row.lend_fee)?.toLocaleString()}</td>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <td className="px-4 py-3 text-right font-mono">₹{Number(row.upfront_margin)?.toLocaleString()}</td>
+                                                                <td className="px-4 py-3 text-right font-mono">₹{Number(row.icmtm)?.toLocaleString()}</td>
+                                                                <td className="px-4 py-3 text-right font-mono text-destructive">₹{Number(row.mtm_loss)?.toLocaleString()}</td>
+                                                            </>
+                                                        )}
                                                         <td className="px-4 py-3 text-right font-mono font-bold text-primary">₹{Number(row.total_margins)?.toLocaleString()}</td>
                                                     </tr>
                                                 )) : (
@@ -560,34 +632,66 @@ export default function ListingV2({
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-xs text-left">
                                             <thead className="bg-muted/40 text-muted-foreground uppercase tracking-wider font-semibold border-b border-border/50">
-                                                <tr>
-                                                    <th className="px-4 py-3">TM Code</th>
-                                                    <th className="px-4 py-3">Client Code</th>
-                                                    <th className="px-4 py-3">Security Symbol</th>
-                                                    <th className="px-4 py-3">Series</th>
-                                                    <th className="px-4 py-3">Expiry Date</th>
-                                                    <th className="px-4 py-3 text-right">Strike Price</th>
-                                                    <th className="px-4 py-3">Option Type</th>
-                                                    <th className="px-4 py-3 text-right">Quantity</th>
-                                                    <th className="px-4 py-3 text-right">Total Margin</th>
-                                                </tr>
+                                                {seg === 'slb' ? (
+                                                    <tr>
+                                                        <th className="px-4 py-3">TM Code</th>
+                                                        <th className="px-4 py-3">Client Code</th>
+                                                        <th className="px-4 py-3">Settlement No.</th>
+                                                        <th className="px-4 py-3">Symbol & Series</th>
+                                                        <th className="px-4 py-3 text-right">Buy Qty</th>
+                                                        <th className="px-4 py-3 text-right">Buy Margin</th>
+                                                        <th className="px-4 py-3 text-right">Sell Qty</th>
+                                                        <th className="px-4 py-3 text-right">Sell Margin</th>
+                                                        <th className="px-4 py-3 text-right">Obligation</th>
+                                                        <th className="px-4 py-3 text-right">Lend Fee</th>
+                                                        <th className="px-4 py-3 text-right">Total Margin</th>
+                                                    </tr>
+                                                ) : (
+                                                    <tr>
+                                                        <th className="px-4 py-3">TM Code</th>
+                                                        <th className="px-4 py-3">Client Code</th>
+                                                        <th className="px-4 py-3">Security Symbol</th>
+                                                        <th className="px-4 py-3">Series</th>
+                                                        <th className="px-4 py-3">Expiry Date</th>
+                                                        <th className="px-4 py-3 text-right">Strike Price</th>
+                                                        <th className="px-4 py-3">Option Type</th>
+                                                        <th className="px-4 py-3 text-right">Quantity</th>
+                                                        <th className="px-4 py-3 text-right">Total Margin</th>
+                                                    </tr>
+                                                )}
                                             </thead>
                                             <tbody className="divide-y divide-border/20">
                                                 {secData && secData.length > 0 ? secData.map((row, i) => (
                                                     <tr key={i} className="hover:bg-muted/30 transition-colors">
                                                         <td className="px-4 py-3 font-semibold">{row.tm_cp_code}</td>
                                                         <td className="px-4 py-3">{row.cli_code}</td>
-                                                        <td className="px-4 py-3 font-bold text-primary">{row.sec_symbol}</td>
-                                                        <td className="px-4 py-3">{row.series}</td>
-                                                        <td className="px-4 py-3">{row.expiry_date}</td>
-                                                        <td className="px-4 py-3 text-right font-mono">{row.strike_price}</td>
-                                                        <td className="px-4 py-3">{row.opt_type}</td>
-                                                        <td className="px-4 py-3 text-right font-mono">{row.qty}</td>
-                                                        <td className="px-4 py-3 text-right font-mono font-bold text-primary">₹{Number(row.total_margin)?.toLocaleString()}</td>
+                                                        {seg === 'slb' ? (
+                                                            <>
+                                                                <td className="px-4 py-3">{row.settlement_typ_no}</td>
+                                                                <td className="px-4 py-3 font-bold text-primary">{row.symb_ser}</td>
+                                                                <td className="px-4 py-3 text-right font-mono">{Number(row.buy_qty)?.toLocaleString()}</td>
+                                                                <td className="px-4 py-3 text-right font-mono">₹{Number(row.buy_margin)?.toLocaleString()}</td>
+                                                                <td className="px-4 py-3 text-right font-mono">{Number(row.sell_qty)?.toLocaleString()}</td>
+                                                                <td className="px-4 py-3 text-right font-mono">₹{Number(row.sell_margin)?.toLocaleString()}</td>
+                                                                <td className="px-4 py-3 text-right font-mono">₹{Number(row.obligation)?.toLocaleString()}</td>
+                                                                <td className="px-4 py-3 text-right font-mono">₹{Number(row.lend_fee)?.toLocaleString()}</td>
+                                                                <td className="px-4 py-3 text-right font-mono font-bold text-primary">₹{Number(row.total_margin)?.toLocaleString()}</td>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <td className="px-4 py-3 font-bold text-primary">{row.sec_symbol}</td>
+                                                                <td className="px-4 py-3">{row.series}</td>
+                                                                <td className="px-4 py-3">{row.expiry_date || '-'}</td>
+                                                                <td className="px-4 py-3 text-right font-mono">{row.strike_price || '-'}</td>
+                                                                <td className="px-4 py-3">{row.opt_type || '-'}</td>
+                                                                <td className="px-4 py-3 text-right font-mono">{Number(row.qty)?.toLocaleString()}</td>
+                                                                <td className="px-4 py-3 text-right font-mono font-bold text-primary">₹{Number(row.total_margin)?.toLocaleString()}</td>
+                                                            </>
+                                                        )}
                                                     </tr>
                                                 )) : (
                                                     <tr>
-                                                        <td colSpan={9} className="text-center py-12 text-muted-foreground">No security margin data available</td>
+                                                        <td colSpan={seg === 'slb' ? 11 : 9} className="text-center py-12 text-muted-foreground">No security margin data available</td>
                                                     </tr>
                                                 )}
                                             </tbody>

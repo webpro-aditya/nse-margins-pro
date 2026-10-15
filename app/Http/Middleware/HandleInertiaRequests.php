@@ -54,6 +54,8 @@ class HandleInertiaRequests extends Middleware
                 ]) : null,
             ],
 
+            'mockApi' => config('nse.mock_api', false),
+
             'flash' => [
                 'success' => fn () => $request->hasSession() ? $request->session()->get('success') : null,
                 'error' => fn () => $request->hasSession() ? $request->session()->get('error') : null,

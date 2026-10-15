@@ -11,6 +11,7 @@ class NseCsvParser
      */
     public function parse(array $rawData, string $type, string $segment): array
     {
+        $segment = strtolower($segment);
         $parsedData = [];
 
         foreach ($rawData as $rowString) {
@@ -117,6 +118,8 @@ class NseCsvParser
     {
         if ($segment === 'slb') {
             return [
+                'memCode' => $this->getVal($fields, 0) ?: $this->getVal($fields, 2),
+                'memName' => $this->getVal($fields, 1),
                 'tmCode' => $this->getVal($fields, 2),
                 'tmName' => $this->getVal($fields, 3),
                 'cliCode' => $this->getVal($fields, 4),
@@ -187,6 +190,7 @@ class NseCsvParser
                 'sellMargin' => $this->getFloat($fields, 12),
                 'obligation' => $this->getFloat($fields, 13),
                 'lendFee' => $this->getFloat($fields, 14),
+                'epiQty' => $this->getFloat($fields, 16),
             ];
         }
 

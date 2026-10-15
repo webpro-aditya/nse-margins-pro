@@ -36,6 +36,11 @@ class NseApiService
 
     public function getCmMargins(string $memCode, string $segment = 'cm'): array
     {
+        if (strtolower($segment) === 'slb') {
+            Log::info("CM margin API is not applicable for SLB segment.");
+            return [];
+        }
+
         $payload = [
             'version' => '2.0',
             'data' => [
@@ -67,7 +72,7 @@ class NseApiService
             'data' => [
                 'msgId' => $this->msgIdService->generate(),
                 'memCode' => (string) $memCode,
-                'cliList' => empty($cliList) ? ($segment === 'cm' ? [""] : []) : $cliList,
+                'cliList' => empty($cliList) ? (in_array(strtolower($segment), ['cm', 'slb']) ? [""] : []) : $cliList,
             ]
         ];
 
@@ -81,7 +86,7 @@ class NseApiService
             'data' => [
                 'msgId' => $this->msgIdService->generate(),
                 'memCode' => (string) $memCode,
-                'cliList' => empty($cliList) ? ($segment === 'cm' ? [""] : []) : $cliList,
+                'cliList' => empty($cliList) ? (in_array(strtolower($segment), ['cm', 'slb']) ? [""] : []) : $cliList,
             ]
         ];
 
@@ -95,7 +100,7 @@ class NseApiService
             'data' => [
                 'msgId' => $this->msgIdService->generate(),
                 'memCode' => (string) $memCode,
-                'cliList' => empty($cliList) ? ($segment === 'cm' ? [""] : []) : $cliList,
+                'cliList' => empty($cliList) ? (in_array(strtolower($segment), ['cm', 'slb']) ? [""] : []) : $cliList,
             ]
         ];
 
@@ -170,22 +175,116 @@ class NseApiService
     {
         if (config('nse.mock_api')) {
             $mockRows = [];
+            $segLower = strtolower($segment);
+            $memCode = config('nse.member_code', '90377');
+
             if ($parserType === 'security') {
-                for ($i=1; $i<=5000; $i++) {
-                    $mockRows[] = "90377,M2026142,CLI" . str_pad($i, 5, '0', STR_PAD_LEFT) . ",DUMMY{$i}," . rand(1000, 99999) . "," . rand(10, 100) . ",0,0,0,0,0,0,0,0,0,0,0,0,0";
+                if ($segLower === 'slb') {
+                    // SLB Security Margin as per PDF Page 22-23
+                    $symbols = ['RELIANCEEQ', 'TCSEQ', 'INFYEQ', 'HDFCBANKEQ', 'ICICIBANKEQ', 'SBINEQ', 'BHARTIARTLEQ', 'ITCEQ', 'KOTAKBANKEQ', 'LTEQ'];
+                    for ($i = 1; $i <= 25; $i++) {
+                        $symb = $symbols[($i - 1) % count($symbols)];
+                        $buyQty = rand(10, 100);
+                        $sellQty = rand(0, 50);
+                        $buyMargin = rand(2000, 20000);
+                        $sellMargin = rand(0, 10000);
+                        $lendFee = rand(500, 5000);
+                        $obligation = rand(50000, 300000);
+                        $totalMargin = $buyMargin + $sellMargin + $lendFee;
+                        $cliCode = "CLI" . str_pad($i, 7, '0', STR_PAD_LEFT);
+                        $mockRows[] = "{$memCode},M2026142,{$cliCode},{$symb},{$totalMargin},,,{$buyQty},{$buyMargin},,{$sellQty},,{$sellMargin},{$obligation},{$lendFee},,0,,,,,,,,";
+                    }
+                } else {
+                    $symbols = ['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK', 'SBIN', 'BHARTIARTL', 'ITC', 'KOTAKBANK', 'LT'];
+                    for ($i=1; $i<=25; $i++) {
+                        $symb = $symbols[($i - 1) % count($symbols)];
+                        $buyQty = rand(10, 100);
+                        $sellQty = rand(5, 50);
+                        $netQty = $buyQty - $sellQty;
+                        $totalMargin = rand(10000, 95000);
+                        $mockRows[] = "{$memCode},M2026142,CLI" . str_pad($i, 5, '0', STR_PAD_LEFT) . ",{$symb},{$totalMargin},{$netQty},0,{$buyQty},0,0,{$sellQty},0,0,0,0,0,0,0,0";
+                    }
                 }
             } elseif ($parserType === 'settlement') {
-                for ($i=1; $i<=5000; $i++) {
-                    $mockRows[] = "90377,CLI" . str_pad($i, 5, '0', STR_PAD_LEFT) . ",M2026142," . rand(1000, 99999) . "," . rand(10, 100) . ",0,0,0,0,0";
+                if ($segLower === 'slb') {
+                    // SLB Settlement Margin as per PDF Page 26-27
+                    for ($i = 1; $i <= 25; $i++) {
+                        $buyMargin = rand(50000, 500000);
+                        $sellMargin = rand(0, 100000);
+                        $lendFee = rand(10000, 100000);
+                        $total = $buyMargin + $sellMargin + $lendFee;
+                        $cliCode = "CLI" . str_pad($i, 7, '0', STR_PAD_LEFT);
+                        $mockRows[] = "{$memCode},{$cliCode},Z2026142,,,,{$buyMargin},{$sellMargin},{$lendFee},{$total},,,,,,";
+                    }
+                } else {
+                    for ($i=1; $i<=25; $i++) {
+                        $upfront = rand(5000, 50000);
+                        $icmtm = rand(1000, 10000);
+                        $mtmLoss = rand(500, 5000);
+                        $total = $upfront + $icmtm + $mtmLoss;
+                        $mockRows[] = "{$memCode},CLI" . str_pad($i, 5, '0', STR_PAD_LEFT) . ",M2026142,{$upfront},{$icmtm},{$mtmLoss},0,0,0,{$total}";
+                    }
                 }
             } elseif ($parserType === 'tm') {
-                $mockRows[] = "90377,ACME CAPITAL MARKET LTD," . rand(100000, 999999) . ",0,104500000,0,0,0,0," . rand(10000, 99999) . ",0.47";
+                if ($segLower === 'slb') {
+                    // SLB TM Margins as per PDF Page 14-16
+                    $cash = 5000000.00;
+                    $nonCash = 500000.00;
+                    $effDep = 5500000.00;
+                    $firstLeg = 550000.00;
+                    $reverseLeg = 600000.00;
+                    $prop = $firstLeg + $reverseLeg;
+                    $cli = 2000000.00;
+                    $total = $prop + $cli;
+                    $util = round(($total / $effDep) * 100, 2);
+                    $mockRows[] = "{$memCode},ACME CAPITAL MARKET LTD,{$cash},{$nonCash},{$effDep},{$prop},{$cli},0.00,,{$total},{$util},,,,,{$firstLeg},{$reverseLeg},,,,,,";
+                } elseif (in_array($segLower, ['fo', 'cd', 'co'])) {
+                    $cash = rand(150000, 500000);
+                    $effDep = 104500000;
+                    $prop = rand(15000, 45000);
+                    $cli = rand(5000, 25000);
+                    $total = $prop + $cli;
+                    $ini = rand(10000, 30000);
+                    $ext = rand(2000, 10000);
+                    $mockRows[] = "{$memCode},ACME CAPITAL MARKET LTD,{$cash},0,{$effDep},{$prop},{$cli},0,0,{$total},0.47,0,0,{$ini},0,0,{$ext}";
+                } else {
+                    $cash = rand(150000, 500000);
+                    $effDep = 104500000;
+                    $total = rand(20000, 80000);
+                    $mockRows[] = "{$memCode},ACME CAPITAL MARKET LTD,{$cash},0,{$effDep},0,0,0,0,{$total},0.47,0,0,0,0";
+                }
             } elseif ($parserType === 'cm') {
-                $mockRows[] = "90377,104500000,0,104500000,0,0," . rand(10000, 99999) . ",0.47,0,0,0";
+                $mockRows[] = "{$memCode},104500000,0,104500000,0,0," . rand(20000, 80000) . ",0.47,0,0,0";
             } elseif ($parserType === 'cli') {
-                for ($i=1; $i<=50; $i++) {
-                    $cliCode = "CLI" . str_pad($i, 5, '0', STR_PAD_LEFT);
-                    $mockRows[] = "M2026,DUMMY CLEARING MEMBER,90377,ACME CAPITAL MARKET LTD,{$cliCode}," . rand(1000, 99999) . ",0,0,0,0,0," . rand(10000, 99999) . ",0,0,0,0";
+                if ($segLower === 'slb') {
+                    // SLB CLI Margins as per PDF Page 18-19
+                    for ($i = 1; $i <= 25; $i++) {
+                        $cliCode = "CLI" . str_pad($i, 7, '0', STR_PAD_LEFT);
+                        $cash = rand(100000, 1000000);
+                        $nonCash = rand(50000, 500000);
+                        $firstLeg = rand(0, 50000);
+                        $reverseLeg = rand(50000, 200000);
+                        $total = $firstLeg + $reverseLeg;
+                        $cliMargin = rand(1000000, 5000000);
+                        $excessNonCash = rand(50000, 200000);
+                        $eligibleNonCash = rand(20000, 100000);
+                        $mockRows[] = ",,{$memCode},ACME CAPITAL MARKET LTD,{$cliCode},{$cash},{$nonCash},,,,{$firstLeg},{$reverseLeg},{$total},{$cliMargin},{$excessNonCash},{$eligibleNonCash},,,,,,";
+                    }
+                } else {
+                    for ($i=1; $i<=25; $i++) {
+                        $cliCode = "CLI" . str_pad($i, 5, '0', STR_PAD_LEFT);
+                        $cash = rand(5000, 40000);
+                        $total = rand(10000, 90000);
+                        if ($segLower === 'cm') {
+                            // CM segment: totalMargin is at index 12
+                            $mockRows[] = "M2026,DUMMY CLEARING MEMBER,{$memCode},ACME CAPITAL MARKET LTD,{$cliCode},{$cash},0,0,0,0,0,0,{$total},0,0,0";
+                        } else {
+                            // Derivatives: totalMargins is at index 11
+                            $ini = (int)($total * 0.7);
+                            $ext = (int)($total * 0.3);
+                            $mockRows[] = "M2026,DUMMY CLEARING MEMBER,{$memCode},ACME CAPITAL MARKET LTD,{$cliCode},{$cash},0,{$ini},0,0,{$ext},{$total},0,0,0,0";
+                        }
+                    }
                 }
             }
             return $this->csvParser->parse($mockRows, $parserType, $segment);

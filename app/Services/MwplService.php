@@ -50,7 +50,12 @@ class MwplService
 
     public function getCachedMwplData(): array
     {
-        return Cache::get('mwpl_data', []);
+        $cached = Cache::get('mwpl_data');
+        if (!empty($cached)) {
+            return $cached;
+        }
+
+        return $this->fetchMwplData();
     }
 
     private function getHeaders(): array

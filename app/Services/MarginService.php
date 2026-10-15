@@ -16,6 +16,10 @@ class MarginService
 
     public function getDashboardData(string $memberCode, string $segment = 'cm')
     {
+        if (config('nse.mock_api')) {
+            $this->ensureMockDataPopulated($memberCode, $segment);
+        }
+
         return [
             'securityMargins' => $this->marginRepository->getSecurityMargins($memberCode, $segment),
             'cmMargins' => $this->marginRepository->getCmMargins($memberCode, $segment),
@@ -25,6 +29,61 @@ class MarginService
         ];
     }
 
+    public function ensureMockDataPopulated(string $memberCode, string $segment = 'cm', bool $force = false): void
+    {
+        $segLower = strtolower($segment);
+        $segUpper = strtoupper($segment);
+        $today = now()->toDateString();
+
+        // TM margins
+        $tmRecord = \App\Models\TmMargin::where('tm_cp_code', $memberCode)
+            ->where('segment', $segUpper)
+            ->whereDate('margin_date', $today)
+            ->first();
+        if ($force || !$tmRecord || $tmRecord->total_margin == 0) {
+            $this->refreshMargins('tm', $segLower);
+        }
+
+        // Security margins
+        $secCount = \App\Models\SecurityMargin::where('tm_cp_code', $memberCode)
+            ->where('segment', $segUpper)
+            ->whereDate('margin_date', $today)
+            ->count();
+        if ($force || $secCount === 0) {
+            $this->refreshMargins('security', $segLower);
+        }
+
+        // Settlement margins
+        $setCount = \App\Models\SettlementMargin::where('tm_cp_code', $memberCode)
+            ->where('segment', $segUpper)
+            ->whereDate('margin_date', $today)
+            ->count();
+        if ($force || $setCount === 0) {
+            $this->refreshMargins('settlement', $segLower);
+        }
+
+        // CLI margins
+        $cliCount = \App\Models\CliMargin::where(function ($q) use ($memberCode) {
+                $q->where('mem_code', $memberCode)->orWhere('tm_code', $memberCode);
+            })
+            ->where('segment', $segUpper)
+            ->whereDate('margin_date', $today)
+            ->count();
+        if ($force || $cliCount === 0) {
+            $this->refreshMargins('cli', $segLower);
+        }
+
+        // CM segment-level margins
+        if ($segLower === 'cm') {
+            $cmRecord = \App\Models\CmMargin::where('mem_code', $memberCode)
+                ->whereDate('margin_date', $today)
+                ->first();
+            if ($force || !$cmRecord || $cmRecord->total_margin == 0) {
+                $this->refreshMargins('cm', 'cm');
+            }
+        }
+    }
+
     public function refreshMargins(string $type, string $segment, array $params = [])
     {
         $memberCode = config('nse.member_code');
@@ -32,6 +91,10 @@ class MarginService
         try {
             switch ($type) {
                 case 'cm':
+                    if (strtolower($segment) === 'slb') {
+                        Log::info("CM margin API is not applicable for SLB segment.");
+                        break;
+                    }
                     $data = $this->apiService->getCmMargins($memberCode, $segment);
                     if (!empty($data)) {
                         $this->marginRepository->saveCmMargins($this->mapData($data, 'cm'));
@@ -51,6 +114,10 @@ class MarginService
                     }
                     break;
                 case 'security':
+                    if (in_array($segment, ['fo', 'cd', 'co']) && !config('nse.mock_api')) {
+                        \Illuminate\Support\Facades\Log::warning("NSE Derivatives API does not support security-margin for segment: {$segment}");
+                        break;
+                    }
                     $cliList = $params['cliList'] ?? null;
                     $data = $this->apiService->getSecurityMargin($memberCode, $cliList, $segment);
                     if (!empty($data)) {
@@ -58,6 +125,10 @@ class MarginService
                     }
                     break;
                 case 'settlement':
+                    if (in_array($segment, ['fo', 'cd']) && !config('nse.mock_api')) {
+                        \Illuminate\Support\Facades\Log::warning("NSE Derivatives API does not support settlement-margin for segment: {$segment}");
+                        break;
+                    }
                     $cliList = $params['cliList'] ?? null;
                     $data = $this->apiService->getSettlementMargin($memberCode, $cliList, $segment);
                     if (!empty($data)) {
@@ -68,7 +139,9 @@ class MarginService
 
             // After saving, fetch the updated data for broadcasting
             // Broadcast lightweight notification instead of full payload
-            broadcast(new MarginDataUpdated(['segment' => $segment, 'type' => $type, 'timestamp' => now()->toIso8601String()]));
+            if (!config('nse.mock_api')) {
+                broadcast(new MarginDataUpdated(['segment' => $segment, 'type' => $type, 'timestamp' => now()->toIso8601String()]));
+            }
 
         } catch (\Exception $e) {
             Log::error("Failed to refresh margins for $type - $segment: " . $e->getMessage());
@@ -107,6 +180,10 @@ class MarginService
                 }
                 
                 $snakeRow[$snakeKey] = $value;
+            }
+
+            if ($type === 'cli' && empty($snakeRow['mem_code'])) {
+                $snakeRow['mem_code'] = $snakeRow['tm_code'] ?? config('nse.member_code', '90377');
             }
 
             if ($type !== 'cm') {

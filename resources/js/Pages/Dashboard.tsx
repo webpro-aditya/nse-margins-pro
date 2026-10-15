@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import '@/echo';
@@ -13,14 +13,31 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ securityMargins: initSecMargins, cmMargins: initCmMargins, tmMargins: initTmMargins, mwplData, segment: initSegment = 'CM' }: DashboardProps) {
+  const { mockApi } = usePage<any>().props;
+  const extractData = (prop: any) => prop?.data ? prop.data : (Array.isArray(prop) ? prop : []);
+
   const [activeTab, setActiveTab] = useState(initSegment);
   const [liveMwpl, setLiveMwpl] = useState<any[]>(mwplData || []);
-  const [securityMargins, setSecurityMargins] = useState<any[]>(initSecMargins || []);
-  const [cmMargins, setCmMargins] = useState<any[]>(initCmMargins || []);
-  const [tmMargins, setTmMargins] = useState<any[]>(initTmMargins || []);
+  const [securityMargins, setSecurityMargins] = useState<any[]>(extractData(initSecMargins));
+  const [cmMargins, setCmMargins] = useState<any[]>(extractData(initCmMargins));
+  const [tmMargins, setTmMargins] = useState<any[]>(extractData(initTmMargins));
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
+    setSecurityMargins(extractData(initSecMargins));
+  }, [initSecMargins]);
+
+  useEffect(() => {
+    setCmMargins(extractData(initCmMargins));
+  }, [initCmMargins]);
+
+  useEffect(() => {
+    setTmMargins(extractData(initTmMargins));
+  }, [initTmMargins]);
+
+  useEffect(() => {
+    if (mockApi) return; // Do not override dummy data with real-time API data
+
     if (window.Echo) {
       window.Echo.channel('mwpl')
         .listen('MwplUpdated', (e: any) => {
@@ -32,14 +49,15 @@ export default function Dashboard({ securityMargins: initSecMargins, cmMargins: 
             const eventSegment = e.dashboardData?.segment || e.segment;
             if (eventSegment?.toLowerCase() !== activeTab.toLowerCase()) return;
             
+            // Fallback: If websocket fails or takes too long, force a silent Inertia reload after 3s
             router.reload({
                 only: ['securityMargins', 'cmMargins', 'tmMargins'],
                 preserveState: true,
                 preserveScroll: true,
                 onSuccess: (page: any) => {
-                    if (page.props.securityMargins) setSecurityMargins(page.props.securityMargins);
-                    if (page.props.cmMargins) setCmMargins(page.props.cmMargins);
-                    if (page.props.tmMargins) setTmMargins(page.props.tmMargins);
+                    if (page.props.securityMargins) setSecurityMargins(extractData(page.props.securityMargins));
+                    if (page.props.cmMargins) setCmMargins(extractData(page.props.cmMargins));
+                    if (page.props.tmMargins) setTmMargins(extractData(page.props.tmMargins));
                     setIsRefreshing(false);
                 }
             });
@@ -86,7 +104,7 @@ export default function Dashboard({ securityMargins: initSecMargins, cmMargins: 
           </div>
 
           <div className="flex border-b border-gray-300 bg-[#f8f9fa] px-2 text-[11px] font-bold gap-6">
-            {['CM', 'FO', 'CD', 'CO'].map((segment) => (
+            {['CM', 'FO', 'CD', 'CO', 'SLB'].map((segment) => (
               <button
                 key={segment}
                 onClick={() => {
